@@ -1,6 +1,6 @@
 # dcmStdToJs
 
-[![Build Status](https://travis-ci.org/ivmartel/dcmStdToJs.svg?branch=master)](https://travis-ci.org/ivmartel/dcmStdToJs)
+[![Build Status](https://travis-ci.com/ivmartel/dcmStdToJs.svg?branch=master)](https://travis-ci.com/ivmartel/dcmStdToJs)
 
 Generate js/json from the DICOM standard in xml.
 
