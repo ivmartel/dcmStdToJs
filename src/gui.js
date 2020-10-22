@@ -58,40 +58,75 @@ function showTags(tags) {
 }
 
 // load select file or default one.
-dstj.gui.onParseButton = function () {
-  var dicomVersions = document.getElementById('dicomVersions');
-  var selectedVersion = dicomVersions.options[
-    dicomVersions.selectedIndex
-  ].value;
-  var fileInputElement = document.getElementById('fileupload');
+dstj.gui.onParseButton = function (button) {
+  function setProgress(event) {
+    var progressBar = document.getElementById('progressBar');
+    if (event.lengthComputable) {
+      progressBar.max = event.total;
+      progressBar.value = event.loaded;
+    }
+  }
+
+  setProgress({loaded: 0, max: 100});
+
+  // disable button
+  button.disabled = true;
+
+  // clear output zone
+  var outputDiv = document.getElementById('output');
+  outputDiv.innerHTML = '';
+
   var parser = new dstj.xml.Part06Parser();
-  if (selectedVersion) {
-    var url = dstj.nema.getDicomPart06Links()[selectedVersion].xml;
-    var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.onload = function () {
-      showTags(parser.parsePart06Node(request.responseXML));
-    };
-    request.send();
-  } else if (fileInputElement.files.length === 1) {
+
+  var fileInputElement = document.getElementById('fileupload');
+  if (fileInputElement.files.length === 1) {
     // a file has been selected
     var file = fileInputElement.files[0];
     var reader = new FileReader();
     reader.onload = function (event) {
-      var parser = new DOMParser();
-      var doc = parser.parseFromString(event.target.result, 'application/xml');
-      showTags(parser.parsePart06Node(doc));
+      // enable button
+      button.disabled = false;
+      // show tags
+      var domParser = new DOMParser();
+      var doc = domParser.parseFromString(
+        event.target.result, 'application/xml');
+      showTags(parser.parseNode(doc));
     };
+    reader.onprogress = setProgress;
+    reader.onloadend = setProgress;
+    reader.onerror = function () {
+      outputDiv.innerHTML =
+        'ERROR while loading data, see log for details...';
+    }
     reader.readAsText(file);
   } else {
-    // default
-    var url2 = './part06.xml';
-    var request2 = new XMLHttpRequest();
-    request2.open('GET', url2, true);
-    request2.onload = function () {
-      showTags(parser.parsePart06Node(request2.responseXML));
+    var dicomVersionsSelect = document.getElementById('dicomVersions');
+    var selectedVersion = dicomVersionsSelect.options[
+      dicomVersionsSelect.selectedIndex
+    ].value;
+    var defaultVersion = '2019a';
+    if (selectedVersion.length === 0) {
+      selectedVersion = defaultVersion;
+    }
+
+    var url = dstj.nema.getDicomPart06Links()[selectedVersion].xml;
+    var request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'document';
+    request.overrideMimeType('text/xml'); // force xml
+    request.onload = function (event) {
+      // enable button
+      button.disabled = false;
+      // show tags
+      showTags(parser.parseNode(event.target.response));
     };
-    request2.send();
+    request.onprogress = setProgress;
+    request.onloadend = setProgress;
+    request.onerror = function () {
+      outputDiv.innerHTML =
+        'ERROR while retrieving data, see log for details...';
+    }
+    request.send();
   }
 }
 

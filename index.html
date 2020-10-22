@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>DICOM Part06 xml2json</title>
+<meta charset="UTF-8">
+<link type="text/css" rel="stylesheet" href="./css/style.css" />
+
+<!-- local -->
+<script src="./src/parser.js"></script>
+<script src="./src/nema.js"></script>
+<script src="./src/gui.js"></script>
+
+<script type="text/javascript">
+// last minute
+document.addEventListener('DOMContentLoaded', function (/*event*/) {
+  dstj.gui.updateVersionSelect();
+});
+</script>
+</head>
+
+<body>
+
+  <h2>DICOM Part06 xml2json</h2>
+
+  <p>
+    DICOM versions: <a href="http://dicom.nema.org/medical/dicom/" target="_parent">dicom.nema.org/medical/dicom/</a>.
+    NEMA does not publish the standard with CORS enabled, so only those published here are available
+    for the online parsing option. Online version are between 4 to 7MB.
+  </p>
+
+  <ul>
+  <li>(default) Use online 2019a part06
+  (<a href="https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard/2019a-part06.xml" target="_parent">xml</a>,
+  <a href="http://medical.nema.org/medical/dicom/2019a/output/html/part06.html" target="_parent">html</a>)</li>
+
+  <li>Or
+  <label for="dicomVersions">choose an online version:</label>
+  <select name="dicomVersions" id="dicomVersions"></select>
+  <span id="versionLinks"></span></li>
+
+  <li>Or
+  <label for="fileupload">select a file to parse: </label>
+  <input id="fileupload" type="file"></li>
+  </ul>
+
+  <p>
+  <button onclick="dstj.gui.onParseButton(this)">Parse</button>
+  </p>
+
+  <progress id="progressBar" value="0" max="100"></progress>
+
+  <div id="output"></div>
+
+
+</body>
+
+</html>
