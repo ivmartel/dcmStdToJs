@@ -3,13 +3,13 @@ var dstj = dstj || {};
 dstj.nema = dstj.nema || {};
 
 dstj.nema.dicomVersions = {
-  '2014': ['a', 'b', 'c'],
-  '2015': ['a', 'b', 'c'],
-  '2016': ['a', 'b', 'c', 'd', 'e'],
-  '2017': ['a', 'b', 'c', 'd', 'e'],
-  '2018': ['a', 'b', 'c', 'd', 'e'],
-  '2019': ['a', 'b', 'c', 'd', 'e'],
-  '2020': ['a', 'b', 'c']
+  '2014': ['a'], // ['a', 'b', 'c'],
+  '2015': ['a'], // ['a', 'b', 'c'],
+  '2016': ['a'], // ['a', 'b', 'c', 'd', 'e'],
+  '2017': ['a'], // ['a', 'b', 'c', 'd', 'e'],
+  '2018': ['a'], // ['a', 'b', 'c', 'd', 'e'],
+  '2019': ['a'], // ['a', 'b', 'c', 'd', 'e'],
+  //'2020': ['a', 'b', 'c']
 };
 
 /**
@@ -34,7 +34,7 @@ dstj.nema.getDicomVersions = function () {
     }
   }
   // add current shortcut
-  versions.splice(0, 0, 'current');
+  // versions.splice(0, 0, 'current');
   // return
   return versions;
 }
@@ -52,8 +52,11 @@ dstj.nema.getNemaLink = function (version, format, partNumber) {
   var partFileName = 'part' + partNumber;
   var link = nemaRoot + version + '/';
   if (format === 'xml') {
-    link += 'source/docbook/' +
-      partFileName + '/' + partFileName + '.xml';
+    // not published with CORS...
+    //link += 'source/docbook/' +
+    //  partFileName + '/' + partFileName + '.xml';
+    var githubRoot = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard/';
+    link = githubRoot + version + '-' + partFileName + '.xml';
   } else if (format === 'html') {
     link += 'output/html/' +
       partFileName + '.html';
