@@ -6,17 +6,15 @@
 <meta charset="UTF-8">
 <link type="text/css" rel="stylesheet" href="./css/style.css" />
 
-<!-- local -->
-<script src="./src/parser.js"></script>
-<script src="./src/nema.js"></script>
-<script src="./src/gui.js"></script>
 
-<script type="text/javascript">
+<script type="module">
+import { setup, onDOMContentLoaded } from './src/gui.js'
+// setup
+setup();
 // last minute
-document.addEventListener('DOMContentLoaded', function (/*event*/) {
-  dstj.gui.updateVersionSelect();
-});
+document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
 </script>
+
 </head>
 
 <body>
@@ -30,28 +28,26 @@ document.addEventListener('DOMContentLoaded', function (/*event*/) {
   </p>
 
   <ul>
-  <li>(default) Use online 2019a part06
-  (<a href="https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard/2019a-part06.xml" target="_parent">xml</a>,
-  <a href="http://medical.nema.org/medical/dicom/2019a/output/html/part06.html" target="_parent">html</a>)</li>
+  <li><label for="fileupload">Select a file to parse: </label>
+  <input id="fileupload" type="file"></li>
 
   <li>Or
   <label for="dicomVersions">choose an online version:</label>
   <select name="dicomVersions" id="dicomVersions"></select>
   <span id="versionLinks"></span></li>
 
-  <li>Or
-  <label for="fileupload">select a file to parse: </label>
-  <input id="fileupload" type="file"></li>
+  <li>Or use (default) online 2019a part06
+  (<a href="https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard/2019a-part06.xml" target="_parent">xml</a>,
+  <a href="http://medical.nema.org/medical/dicom/2019a/output/html/part06.html" target="_parent">html</a>)</li>
   </ul>
 
   <p>
-  <button onclick="dstj.gui.onParseButton(this)">Parse</button>
+  <button id="parseButton">Parse</button>
   </p>
 
   <progress id="progressBar" value="0" max="100"></progress>
 
   <div id="output"></div>
-
 
 </body>
 

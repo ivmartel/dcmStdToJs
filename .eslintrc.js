@@ -7,6 +7,10 @@ module.exports = {
     dwv: 'readonly'
   },
   extends: 'eslint:recommended',
+  parserOptions: {
+    ecmaVersion: 6,
+    sourceType: 'module',
+  },
   rules: {
     // formatting rules
 
