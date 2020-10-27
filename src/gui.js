@@ -111,7 +111,7 @@ function onParseButton(event) {
  */
 function showTags(tags) {
   // tabulation
-  var tab = '    ';
+  var tab = '  ';
   // result text
   var text = '';
 
