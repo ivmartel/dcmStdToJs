@@ -8,11 +8,12 @@
 
 
 <script type="module">
-import { setup, onDOMContentLoaded } from './src/gui.js'
+import { Gui } from './src/gui.js'
 // setup
-setup();
+var gui = new Gui();
+gui.setup();
 // last minute
-document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
+document.addEventListener('DOMContentLoaded', gui.onDOMContentLoaded);
 </script>
 
 <script nomodule>

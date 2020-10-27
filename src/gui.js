@@ -2,18 +2,23 @@ import {Part06Parser} from './parser.js';
 import * as nema from './nema.js';
 
 /**
- * Setup the gui: bind parse button.
+ * GUI classe.
  */
-export function setup() {
-  document.getElementById('parseButton').addEventListener(
-    'click', onParseButton);
-}
+export class Gui {
+  /**
+   * Setup the gui: bind parse button.
+   */
+  setup() {
+    document.getElementById('parseButton').addEventListener(
+      'click', onParseButton);
+  }
 
-/**
- * DOMContentLoaded handler: update the version select.
- */
-export function onDOMContentLoaded() {
-  updateVersionSelect();
+  /**
+   * DOMContentLoaded handler: update the version select.
+   */
+  onDOMContentLoaded() {
+    updateVersionSelect();
+  }
 }
 
 /**
