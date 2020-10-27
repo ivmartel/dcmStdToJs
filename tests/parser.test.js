@@ -1,3 +1,5 @@
+import {Part06Parser} from '../src/parser.js';
+
 /**
  * Tests for the 'parser.js' file.
  */
@@ -11,5 +13,11 @@ QUnit.module('parser');
  * @function module:tests/parser~Part06Parser
  */
 QUnit.test('Test Part06Parser.', function (assert) {
-  assert.equal(1, 1, 'get(0,0)');
+
+  var node = document.createElement('table');
+
+  var parser = new Part06Parser();
+  var result = parser.parseNode(node);
+  assert.equal(result.length, 0, 'empty node returns empty array.');
+
 });
