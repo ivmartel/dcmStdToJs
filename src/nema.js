@@ -1,8 +1,6 @@
-// namespace
-var dstj = dstj || {};
-dstj.nema = dstj.nema || {};
-
-dstj.nema.dicomVersions = {
+// DICOM versions object
+// (only those published with this repo since NEMA does not do CORS...)
+var dicomVersions = {
   '2014': ['a'], // ['a', 'b', 'c'],
   '2015': ['a'], // ['a', 'b', 'c'],
   '2016': ['a'], // ['a', 'b', 'c', 'd', 'e'],
@@ -17,18 +15,14 @@ dstj.nema.dicomVersions = {
  * @returns An array of versions, ordered from most recent to older
  *   and with a 'current' first element.
  */
-dstj.nema.getDicomVersions = function () {
-  var keys = Object.keys(dstj.nema.dicomVersions);
-  // reverse sort keys
-  function compare(a, b) {
-    return parseInt(b, 10) - parseInt(a, 10);
-  }
+export function getDicomVersions() {
+  var keys = Object.keys(dicomVersions);
   keys.sort(compare);
   // create version strings
   var versions = [];
   for (var i = 0; i < keys.length; ++i) {
     var majorVersion = keys[i];
-    var minorVersions = dstj.nema.dicomVersions[majorVersion];
+    var minorVersions = dicomVersions[majorVersion];
     for (var j = 0; j < minorVersions.length; ++j) {
       versions.push(majorVersion + minorVersions[j]);
     }
@@ -39,6 +33,39 @@ dstj.nema.getDicomVersions = function () {
   return versions;
 }
 
+// reverse sort keys
+function compare(a, b) {
+  return parseInt(b, 10) - parseInt(a, 10);
+}
+
+/**
+ * Get a list of DICOM versions associated to their resrouce link
+ * @returns An object in the form of:
+ * {
+ *   2020a: {xml: %xmlLink%, html: %htmlLink%},
+ *   ...
+ * }
+ */
+export function getDicomPart06Links() {
+  var partNumber = '06';
+  var versions = getDicomVersions();
+  var links = {};
+  for (var i = 0; i < versions.length; ++i) {
+    storeLink(links, versions[i], partNumber);
+  }
+  // add current
+  storeLink(links, 'current', partNumber);
+  // return
+  return links;
+}
+
+function storeLink(storage, version, pNumber) {
+  storage[version] = {
+    'xml': getNemaLink(version, 'xml', pNumber),
+    'html': getNemaLink(version, 'html', pNumber),
+  };
+}
+
 /**
  * Get the nema link to the standard.
  * @param {String} version The standard version.
@@ -46,7 +73,7 @@ dstj.nema.getDicomVersions = function () {
  * @param {String} partNumber The standard part number as a string.
  * @returns The full link to the desired file.
  */
-dstj.nema.getNemaLink = function (version, format, partNumber) {
+function getNemaLink(version, format, partNumber) {
   // no https...
   var nemaRoot = 'http://dicom.nema.org/medical/dicom/';
   var partFileName = 'part' + partNumber;
@@ -62,32 +89,4 @@ dstj.nema.getNemaLink = function (version, format, partNumber) {
       partFileName + '.html';
   }
   return link;
-}
-
-/**
- * Get a list of DICOM versions associated to their resrouce link
- * @returns An object in the form of:
- * {
- *   2020a: {xml: %xmlLink%, html: %htmlLink%},
- *   ...
- * }
- */
-dstj.nema.getDicomPart06Links = function () {
-  function storeLink(storage, version, pNumber) {
-    storage[version] = {
-      'xml': dstj.nema.getNemaLink(version, 'xml', pNumber),
-      'html': dstj.nema.getNemaLink(version, 'html', pNumber),
-    };
-  }
-
-  var partNumber = '06';
-  var versions = dstj.nema.getDicomVersions();
-  var links = {};
-  for (var i = 0; i < versions.length; ++i) {
-    storeLink(links, versions[i], partNumber);
-  }
-  // add current
-  storeLink(links, 'current', partNumber);
-  // return
-  return links;
 }
