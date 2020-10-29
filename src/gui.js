@@ -129,11 +129,6 @@ function showTags(tags) {
       // start new
       group = tag.group;
       text += tab + '\'' + tag.group + '\': {\n';
-      // #modif add "GenericGroupLength"
-      if (group !== '0x0002') {
-        text += tab + tab +
-          '\'0x0000\': [\'UL\', \'1\', \'GenericGroupLength\'],\n';
-      }
     }
 
     // tag

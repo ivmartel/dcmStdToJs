@@ -24,8 +24,112 @@ export class Part06Parser {
     part06Node.querySelectorAll(
       'table[label=\'6-1\'] > tbody > tr').forEach(callback);
 
-    return tags;
+    return modifyTags(tags);
   }
+}
+
+/**
+ * Get a compare function for a specific object property.
+ * @param {String} property The object property to sort by.
+ * @returns A compare function.
+ */
+function getCompare(property) {
+  return function (a, b) {
+    if (a[property] < b[property]) {
+      return -1;
+    }
+    if (a[property] > b[property]) {
+      return 1;
+    }
+    return 0;
+  };
+}
+
+/**
+ * Get a mulit compare function for a list of object properties.
+ * @param {Array} properties The list of object properties to sort by.
+ * @returns A compare function.
+ */
+function getMultiCompare(properties) {
+  return function (a, b) {
+    var res = null;
+    for (var i = 0; i < properties.length; ++i) {
+      res = getCompare(properties[i])(a, b);
+      // if result is not zero, exit
+      if (res !== 0) {
+        return res;
+      }
+    }
+    return res;
+  };
+}
+
+/**
+ * Modify tags:
+ * - replace 'x' in groups and elements
+ * - add GenericGroupLength to groups
+ * - replace non single VRs
+ */
+function modifyTags(tags) {
+  // replace 'x's in groups and elements
+  function replaceXs(str) {
+    str = str.replace(/xxxxx/g, 'x0004');
+    str = str.replace(/xxxx/g, 'x001');
+    str = str.replace(/xx/g, '00');
+    return str;
+  }
+
+  // list groups
+  var groups = [];
+  for (var t = 0; t < tags.length; ++t) {
+    // replace 'x's
+    tags[t].group = replaceXs(tags[t].group);
+    tags[t].element = replaceXs(tags[t].element);
+    // list groups
+    var grp = tags[t].group;
+    if (!groups.includes(grp)) {
+      groups.push(grp);
+    }
+  }
+
+  // add GenericGroupLength to groups
+  for (var g = 0; g < groups.length; ++g) {
+    var group = groups[g];
+    if (group !== '0x0000' && group !== '0x0002') {
+      tags.push({
+        group: group,
+        element: '0x0000',
+        keyword: 'GenericGroupLength',
+        vr: 'UL',
+        vm: '1'
+      });
+    }
+  }
+
+  // sort tags
+  tags.sort(getMultiCompare(['group', 'element']));
+
+  // check VRs
+  for (var i = 0; i < tags.length; ++i) {
+    var vr = tags[i].vr;
+    if (typeof vr !== 'undefined') {
+      if (vr.substr(0, 8) === 'See Note') {
+        // #modif "See Note" -> "NONE"
+        vr = 'NONE';
+      } else if (vr === 'OB or OW') {
+        // #modif "OB or OW" -> "ox"
+        vr = 'ox';
+      } else if (vr === 'US or SS') {
+        // #modif "US or SS" -> "xs"
+        vr = 'xs';
+      }
+    } else {
+      vr = '';
+    }
+    tags[i].vr = vr;
+  }
+
+  return tags;
 }
 
 /**
@@ -59,31 +163,14 @@ function parseTagValues(values) {
   }
   // split (group,element)
   var geSplit = values[0].split(',');
-  // not replacing 'x' (elemNum.replace(/x/g, '0'))
   var group = '0x' + geSplit[0].substr(1, 4).toString();
   var element = '0x' + geSplit[1].substr(0, 4).toString();
-  // vr
-  var vr = values[3];
-  if (typeof vr !== 'undefined') {
-    if (vr.substr(0, 8) === 'See Note') {
-    // #modif "See Note" -> "NONE"
-      vr = 'NONE';
-    } else if (vr === 'OB or OW') {
-    // #modif "OB or OW" -> "ox"
-      vr = 'ox';
-    } else if (vr === 'US or SS') {
-    // #modif "US or SS" -> "xs"
-      vr = 'xs';
-    }
-  } else {
-    vr = '';
-  }
   // return
   return {
     group: group,
     element: element,
     keyword: typeof values[2] === 'undefined' ? '' : values[2],
-    vr: vr,
+    vr: typeof values[3] === 'undefined' ? '' : values[3],
     vm: typeof values[4] === 'undefined' ? '' : values[4]
   };
 }
