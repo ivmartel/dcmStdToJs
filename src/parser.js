@@ -10,53 +10,39 @@ export class Part06Parser {
    */
   parseNode(part06Node) {
     var tags = [];
-    var tableCallback = function (node) {
-      tags = tags.concat(parseTableNode(node));
+    var callback = function (node) {
+      tags.push(parseTagTrNode(node));
     };
 
     // 0002: DICOM File Meta Elements
-    part06Node.querySelectorAll('table[label=\'7-1\']').forEach(tableCallback);
+    part06Node.querySelectorAll(
+      'table[label=\'7-1\'] > tbody > tr').forEach(callback);
     // 0004: DICOM Directory Structuring Elements
-    part06Node.querySelectorAll('table[label=\'8-1\']').forEach(tableCallback);
+    part06Node.querySelectorAll(
+      'table[label=\'8-1\'] > tbody > tr').forEach(callback);
     // 0008: DICOM Data Elements
-    part06Node.querySelectorAll('table[label=\'6-1\']').forEach(tableCallback);
+    part06Node.querySelectorAll(
+      'table[label=\'6-1\'] > tbody > tr').forEach(callback);
 
     return tags;
   }
 }
 
 /**
- * Parse a part06 XML table node.
- * @param {Node} tableNode A DOM node.
- * @return {Array} The cresponding list of tags.
- */
-function parseTableNode(tableNode) {
-  var tags = [];
-  tableNode.querySelectorAll('tr').forEach(function (node) {
-    var tag = parseTrNode(node);
-    if (typeof tag !== 'undefined') {
-      tags.push(tag);
-    }
-  });
-  // return
-  return tags;
-}
-
-/**
  * Parse a part06 XML table row node.
- * @param {Node} trNode A DOM node.
- * @return {Object} The cresponding tag.
+ * @param {Node} trNode A DOM node representing a DICOM tag.
+ * @return {Object} The cresponding DICOM tag.
  */
-function parseTrNode(trNode) {
-// table cell values
+function parseTagTrNode(trNode) {
+  // table cell values
   var values = [];
   trNode.querySelectorAll('td').forEach(function (node) {
-    values.push(parseTdNode(node));
+    values.push(parseTagTdNode(node));
   });
   // create tag from values
   var tag;
   if (values.length !== 0) {
-    tag = parseTagRow(values)
+    tag = parseTagValues(values)
   }
   // return
   return tag;
@@ -64,20 +50,20 @@ function parseTrNode(trNode) {
 
 /**
  * Parse a tag row and return a tag object.
- * @param {Array} row A tag row (length=6).
+ * @param {Array} values A tag row array of values (length=6).
  * @return {Object} A tag object: {group, element, keyword, vr, vm}.
  */
-function parseTagRow(row) {
-  if (row.length !== 6) {
-    throw new Error('Not the expected tag row size.');
+function parseTagValues(values) {
+  if (values.length !== 6) {
+    throw new Error('Not the expected tag values size.');
   }
   // split (group,element)
-  var geSplit = row[0].split(',');
+  var geSplit = values[0].split(',');
   // not replacing 'x' (elemNum.replace(/x/g, '0'))
   var group = '0x' + geSplit[0].substr(1, 4).toString();
   var element = '0x' + geSplit[1].substr(0, 4).toString();
   // vr
-  var vr = row[3];
+  var vr = values[3];
   if (typeof vr !== 'undefined') {
     if (vr.substr(0, 8) === 'See Note') {
     // #modif "See Note" -> "NONE"
@@ -96,9 +82,9 @@ function parseTagRow(row) {
   return {
     group: group,
     element: element,
-    keyword: typeof row[2] === 'undefined' ? '' : row[2],
+    keyword: typeof values[2] === 'undefined' ? '' : values[2],
     vr: vr,
-    vm: typeof row[4] === 'undefined' ? '' : row[4]
+    vm: typeof values[4] === 'undefined' ? '' : values[4]
   };
 }
 
@@ -115,7 +101,7 @@ function parseTagRow(row) {
  *   <emphasis role="italic">(0004,1600)</emphasis>
  * </para>
  */
-function parseTdNode(tdNode) {
+function parseTagTdNode(tdNode) {
   var value;
   // expect one 'para' eñement
   var paras = tdNode.getElementsByTagName('para');
