@@ -8,21 +8,37 @@ export class Part06Parser {
    * @param {Node} part06Node A DOM node.
    * @return {Array} The corresponding tags array.
    */
-  parseNode(part06Node) {
+  parseNode(partNode) {
     var tags = [];
     var callback = function (node) {
       tags.push(parseTagTrNode(node));
     };
 
-    // 0002: DICOM File Meta Elements
-    part06Node.querySelectorAll(
-      'table[label=\'7-1\'] > tbody > tr').forEach(callback);
-    // 0004: DICOM Directory Structuring Elements
-    part06Node.querySelectorAll(
-      'table[label=\'8-1\'] > tbody > tr').forEach(callback);
-    // 0008: DICOM Data Elements
-    part06Node.querySelectorAll(
-      'table[label=\'6-1\'] > tbody > tr').forEach(callback);
+    var label = partNode.querySelector('book').getAttribute('label')
+    if (typeof label === 'undefined' || label.length === 0) {
+      throw new Error('The provided node does not have a label.');
+    }
+
+    if (label === 'PS3.6') {
+      // 0002: DICOM File Meta Elements
+      partNode.querySelectorAll(
+        'table[label=\'7-1\'] > tbody > tr').forEach(callback);
+      // 0004: DICOM Directory Structuring Elements
+      partNode.querySelectorAll(
+        'table[label=\'8-1\'] > tbody > tr').forEach(callback);
+      // DICOM Data Elements
+      partNode.querySelectorAll(
+        'table[label=\'6-1\'] > tbody > tr').forEach(callback);
+    } else if (label === 'PS3.7') {
+      // 0000: command
+      partNode.querySelectorAll(
+        'table[label=\'E.1-1\'] > tbody > tr').forEach(callback);
+      // 0000: command (retired)
+      partNode.querySelectorAll(
+        'table[label=\'E.2-1\'] > tbody > tr').forEach(callback);
+    } else {
+      throw new Error('Don\'t know how to parse thiss label: ' + label);
+    }
 
     return modifyTags(tags);
   }
@@ -158,8 +174,8 @@ function parseTagTrNode(trNode) {
  * @return {Object} A tag object: {group, element, keyword, vr, vm}.
  */
 function parseTagValues(values) {
-  if (values.length !== 6) {
-    throw new Error('Not the expected tag values size.');
+  if (values.length !== 5 && values.length !== 6) {
+    throw new Error('Not the expected tag values size: ' + values.length);
   }
   // split (group,element)
   var geSplit = values[0].split(',');
@@ -192,10 +208,13 @@ function parseTagTdNode(tdNode) {
   var value;
   // expect one 'para' eñement
   var paras = tdNode.getElementsByTagName('para');
-  if (paras.length !== 1) {
-    throw new Error('Not the expected \'para\' elements length.');
-  }
   var para = paras[0];
+  if (paras.length !== 1) {
+    var label = para.getAttribute('xml:id');
+    console.warn(
+      'Using first \'para\' (label: ' + label + ') of ' +
+      paras.length + ' (expected just one...)');
+  }
   // parse childs
   if (para.childNodes.length !== 0) {
     // if the para contains an emphasis child, use its content
