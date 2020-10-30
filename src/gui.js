@@ -71,7 +71,7 @@ function onParseButton(event) {
     reader.onerror = function () {
       outputDiv.innerHTML =
         'ERROR while loading data, see log for details...';
-    }
+    };
     reader.readAsText(file);
   } else {
     // use selected version or default
@@ -100,7 +100,7 @@ function onParseButton(event) {
     request.onerror = function () {
       outputDiv.innerHTML =
         'ERROR while retrieving data, see log for details...';
-    }
+    };
     request.send();
   }
 }
@@ -179,7 +179,7 @@ function updateVersionSelect() {
   // update associated links on select change
   versionSelect.onchange = function (event) {
     updateVersionLinks(event.target.value);
-  }
+  };
 }
 
 /**

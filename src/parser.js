@@ -166,7 +166,7 @@ function parseTagTrNode(trNode) {
   // create tag from values
   var tag;
   if (values.length !== 0) {
-    tag = parseTagValues(values)
+    tag = parseTagValues(values);
   }
   // return
   return tag;
