@@ -14,7 +14,11 @@ export class Part06Parser {
       tags.push(parseTagTrNode(node));
     };
 
-    var label = partNode.querySelector('book').getAttribute('label')
+    var book = partNode.querySelector('book');
+    if (!book) {
+      throw new Error('No book root...');
+    }
+    var label = book.getAttribute('label');
     if (typeof label === 'undefined' || label.length === 0) {
       throw new Error('The provided node does not have a label.');
     }
@@ -37,7 +41,7 @@ export class Part06Parser {
       partNode.querySelectorAll(
         'table[label=\'E.2-1\'] > tbody > tr').forEach(callback);
     } else {
-      throw new Error('Don\'t know how to parse thiss label: ' + label);
+      throw new Error('Don\'t know how to parse this label: ' + label);
     }
 
     return modifyTags(tags);
@@ -208,11 +212,14 @@ function parseTagTdNode(tdNode) {
   var value;
   // expect one 'para' eñement
   var paras = tdNode.getElementsByTagName('para');
+  if (paras.length === 0) {
+    throw new Error('No para in table cell...');
+  }
   var para = paras[0];
   if (paras.length !== 1) {
     var label = para.getAttribute('xml:id');
     console.warn(
-      'Using first \'para\' (label: ' + label + ') of ' +
+      'Using first para (label: ' + label + ') of ' +
       paras.length + ' (expected just one...)');
   }
   // parse childs
