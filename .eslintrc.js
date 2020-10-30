@@ -14,6 +14,9 @@ module.exports = {
   rules: {
     // formatting rules
 
+    // force semi colon
+    // https://eslint.org/docs/rules/semi
+    semi: ['error'],
     // force 2 space indent (default: 4)
     // https://eslint.org/docs/rules/indent
     indent: ['error', 2],
