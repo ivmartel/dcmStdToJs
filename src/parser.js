@@ -192,57 +192,89 @@ function adaptTagsForDwv(inputTags) {
 
 /**
  * Parse a DICOM standard XML table node.
- * @param {Node} tableNode A DOM node representing DICOM tags.
+ * @param {Node} tableNode A DOM table node.
  * @param {String} expectedCaption The expected table caption.
- * @return {Object} The cresponding DICOM tags.
+ * @return {Array} The DICOM tags objects.
  */
 function parseTagsTableNode(tableNode, expectedCaption) {
+  var values = parseTableNode(tableNode, expectedCaption);
+  var tags = [];
+  for (var i = 0; i < values.length; ++i) {
+    tags.push(tagPropertiesToObject(values[i]));
+  }
+  return tags;
+}
+
+/**
+ * Parse a DICOM standard XML table node.
+ * @param {Node} tableNode A DOM table node.
+ * @param {String} expectedCaption The expected table caption.
+ * @return {Array} The objects property values.
+ */
+function parseTableNode(tableNode, expectedCaption) {
   // check node
   if (!tableNode) {
     throw new Error('No table node.');
   }
   // check caption
-  var captions = tableNode.getElementsByTagName('caption');
-  if (!captions) {
-    throw new Error('No table caption.');
-  }
-  if (captions.length === 0) {
-    throw new Error('Empty table caption.');
-  }
-  var text = captions[0].innerHTML;
-  if (text !== expectedCaption) {
-    throw new Error(
-      'The table caption is not the expected one: ' +
-      expectedCaption + ' != ' + text);
-  }
+  checkNodeCaption(tableNode, expectedCaption);
   // parse node rows
-  var tags = [];
+  var values = [];
   tableNode.querySelectorAll('tbody > tr').forEach(
     function (node) {
-      tags.push(parseTagTrNode(node));
+      values.push(parseTrNode(node));
     }
   );
-  return tags;
+  return values;
+}
+
+/**
+ * Check a node caption.
+ * @param {Node} node A DOM node.
+ * @param {String} expectedCaption The expected node caption.
+ * @param {Bool} isEqualCheck Bool to perform equal or include
+ *   caption text check.
+ */
+function checkNodeCaption(node, expectedCaption, isEqualCheck) {
+  if (typeof isEqualCheck === 'undefined') {
+    isEqualCheck = true;
+  }
+  var captions = node.getElementsByTagName('caption');
+  if (!captions) {
+    throw new Error('No node caption.');
+  }
+  if (captions.length === 0) {
+    throw new Error('Empty node caption.');
+  }
+  var text = captions[0].innerHTML;
+  if (isEqualCheck) {
+    if (text !== expectedCaption) {
+      throw new Error(
+        'The node caption is not the expected one: ' +
+        expectedCaption + ' != ' + text);
+    }
+  } else {
+    if (!text.includes(expectedCaption)) {
+      throw new Error(
+        'The node caption does not include the expected one: ' +
+        expectedCaption + ' != ' + text);
+    }
+  }
 }
 
 /**
  * Parse a DICOM standard XML table row node.
- * @param {Node} trNode A DOM node representing a DICOM tag.
- * @return {Object} The cresponding DICOM tag.
+ * @param {Node} trNode A DOM row node.
+ * @return {Array} The row object properties.
  */
-function parseTagTrNode(trNode) {
+function parseTrNode(trNode) {
   // table cell values
-  var values = [];
+  var properties = [];
   trNode.querySelectorAll('td').forEach(function (node) {
-    values.push(parseTagTdNode(node));
+    properties.push(parseTdNode(node));
   });
-  // create tag from values
-  var tag;
-  if (values.length !== 0) {
-    tag = parseTagValues(values);
-  }
   // return
-  return tag;
+  return properties;
 }
 
 /**
@@ -250,7 +282,7 @@ function parseTagTrNode(trNode) {
  * @param {Array} values A tag row array of values (length=6).
  * @return {Object} A tag object: {group, element, keyword, vr, vm}.
  */
-function parseTagValues(values) {
+function tagPropertiesToObject(values) {
   if (values.length !== 5 && values.length !== 6) {
     throw new Error('Not the expected tag values size: ' + values.length);
   }
@@ -270,19 +302,21 @@ function parseTagValues(values) {
 
 /**
  * Parse a DICOM standard XML table row cell node.
- * @param {Node} tdNode A DOM node.
- * @return {string} The tag property value.
+ * @param {Node} tdNode A DOM cell node.
+ * @return {string} The cell property value.
  *
  * Examples:
  *
  * <para>(0004,1410)</para>
  *
+ * OR
+ *
  * <para>
  *   <emphasis role="italic">(0004,1600)</emphasis>
  * </para>
  */
-function parseTagTdNode(tdNode) {
-  var value;
+function parseTdNode(tdNode) {
+  var property;
   // expect one 'para' eñement
   var paras = tdNode.getElementsByTagName('para');
   if (paras.length === 0) {
@@ -303,14 +337,14 @@ function parseTagTdNode(tdNode) {
       if (emphasis.length !== 1) {
         throw new Error('Not the expected \'emphasis\' elements length.');
       }
-      value = emphasis[0].innerHTML;
+      property = emphasis[0].innerHTML;
     } else {
-      value = para.childNodes[0].nodeValue;
+      property = para.childNodes[0].nodeValue;
     }
-    value = cleanString(value);
+    property = cleanString(property);
   }
   // return
-  return value;
+  return property;
 }
 
 /**
@@ -320,17 +354,17 @@ function parseTagTdNode(tdNode) {
  * @returns {Array} The list of 32bit VRs.
  */
 function parseVrVl32bits(node, expectedCaptionRoot) {
-  var caption = node.getElementsByTagName('caption');
-  var text = caption[0].innerHTML;
-  // check caption root
-  if (!text.includes(expectedCaptionRoot)) {
-    throw new Error(
-      'The provided node does not include the expected caption: ' +
-      expectedCaptionRoot + ' != ' + text);
+  // check node
+  if (!node) {
+    throw new Error('No VrVl32bits node.');
   }
+  // check caption
+  checkNodeCaption(node, expectedCaptionRoot, false);
   // expecting something like:
   // 'Data Element with Explicit VR of OB, OW, OF, OD, SQ, UT or UN'
   var regex = /(?:\s)([A-Z]{2})(?:,|\sor|$)/g;
+  var caption = node.getElementsByTagName('caption');
+  var text = caption[0].innerHTML;
   var matches = text.matchAll(regex);
   var result = [];
   for (var match of matches) {

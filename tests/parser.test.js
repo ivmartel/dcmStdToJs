@@ -100,8 +100,8 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     parser.parseNode(node12);
   };
   assert.raises(fbad12,
-    /Empty table caption/,
-    'no table caption');
+    /Empty node caption/,
+    'no table node caption');
 
   // utility function
   function getTableNode(label, captionText) {
@@ -132,8 +132,8 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     parser.parseNode(node13);
   };
   assert.raises(fbad13,
-    /The table caption is not the expected one/,
-    'bad table caption');
+    /The node caption is not the expected one/,
+    'bad table node caption');
 
   // #14 table with no content
   var node14 = getValidBookNode();
