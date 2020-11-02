@@ -5,3 +5,12 @@ body {
 input[type="file"] {
   background: #efefef;
 }
+
+textarea {
+  width: 99%;
+  margin-top: 10px;
+}
+
+.error {
+  color: red;
+}
