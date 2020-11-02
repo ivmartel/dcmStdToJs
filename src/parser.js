@@ -1,50 +1,75 @@
 /**
- * DICOM part06 (xml) parser.
+ * DICOM xml parser.
  */
-export class Part06Parser {
+export class DicomXMLParser {
 
   /**
-   * Parse a DICOM part06 xml.
-   * @param {Node} part06Node A DOM node.
-   * @return {Array} The corresponding tags array.
+   * Parse a DICOM standard xml node.
+   * @param {Node} partNode A DOM node.
+   * @return {Object} An object containing:
+   * - raw: the raw tags
+   * - adapted: the adapted tags for dwv
+   * - asString: the adapted tags as string
    */
   parseNode(partNode) {
-    var tags = [];
-    var callback = function (node) {
-      tags.push(parseTagTrNode(node));
-    };
-
+    // get book node
     var book = partNode.querySelector('book');
     if (!book) {
-      throw new Error('No book root...');
+      throw new Error('No book node.');
     }
+    // get book label
     var label = book.getAttribute('label');
-    if (typeof label === 'undefined' || label.length === 0) {
-      throw new Error('The provided node does not have a label.');
+    if (!label) {
+      throw new Error('No book label.');
     }
 
-    if (label === 'PS3.6') {
+    var raw = null;
+    var adapted = null;
+    var asString = null;
+    var tags = [];
+
+    if (label === 'PS3.5') {
+      // 32-bit VL VRs
+      raw = parseVrVl32bits(
+        partNode.querySelector('table[label=\'7.1-1\']'),
+        'Data Element with Explicit VR');
+      adapted = raw;
+      asString = raw.toString();
+    } else if (label === 'PS3.6') {
       // 0002: DICOM File Meta Elements
-      partNode.querySelectorAll(
-        'table[label=\'7-1\'] > tbody > tr').forEach(callback);
+      tags = tags.concat(parseTagsTableNode(
+        partNode.querySelector('table[label=\'7-1\']'),
+        'Registry of DICOM File Meta Elements'));
       // 0004: DICOM Directory Structuring Elements
-      partNode.querySelectorAll(
-        'table[label=\'8-1\'] > tbody > tr').forEach(callback);
+      tags = tags.concat(parseTagsTableNode(
+        partNode.querySelector('table[label=\'8-1\']'),
+        'Registry of DICOM Directory Structuring Elements'));
       // DICOM Data Elements
-      partNode.querySelectorAll(
-        'table[label=\'6-1\'] > tbody > tr').forEach(callback);
+      tags = tags.concat(parseTagsTableNode(
+        partNode.querySelector('table[label=\'6-1\']'),
+        'Registry of DICOM Data Elements'));
+
+      raw = tags;
+      adapted = adaptTagsForDwv(raw);
+      asString = stringifyTags(adapted);
     } else if (label === 'PS3.7') {
       // 0000: command
-      partNode.querySelectorAll(
-        'table[label=\'E.1-1\'] > tbody > tr').forEach(callback);
+      tags = tags.concat(parseTagsTableNode(
+        partNode.querySelector('table[label=\'E.1-1\']'),
+        'Command Fields'));
       // 0000: command (retired)
-      partNode.querySelectorAll(
-        'table[label=\'E.2-1\'] > tbody > tr').forEach(callback);
+      tags = tags.concat(parseTagsTableNode(
+        partNode.querySelector('table[label=\'E.2-1\']'),
+        'Retired Command Fields'));
+
+      raw = tags;
+      adapted = adaptTagsForDwv(raw);
+      asString = stringifyTags(adapted);
     } else {
-      throw new Error('Don\'t know how to parse this label: ' + label);
+      throw new Error('Unknown book label: ' + label);
     }
 
-    return modifyTags(tags);
+    return {raw, adapted, asString};
   }
 }
 
@@ -66,7 +91,7 @@ function getCompare(property) {
 }
 
 /**
- * Get a mulit compare function for a list of object properties.
+ * Get a multi compare function for a list of object properties.
  * @param {Array} properties The list of object properties to sort by.
  * @returns A compare function.
  */
@@ -85,12 +110,22 @@ function getMultiCompare(properties) {
 }
 
 /**
- * Modify tags:
+ * Adapt tags:
  * - replace 'x' in groups and elements
  * - add GenericGroupLength to groups
  * - replace non single VRs
+ * @param {Array} inputTags An array of tags.
+ * @returns {Array} The adapted tags as a new array.
  */
-function modifyTags(tags) {
+function adaptTagsForDwv(inputTags) {
+  // check tags
+  if (!inputTags) {
+    throw new Error('No tags.');
+  }
+  if (inputTags.length === 0) {
+    throw new Error('Empty tags.');
+  }
+
   // replace 'x's in groups and elements
   function replaceXs(str) {
     str = str.replace(/xxxxx/g, 'x0004');
@@ -98,6 +133,9 @@ function modifyTags(tags) {
     str = str.replace(/xx/g, '00');
     return str;
   }
+
+  // clone input
+  var tags = inputTags.slice();
 
   // list groups
   var groups = [];
@@ -153,7 +191,42 @@ function modifyTags(tags) {
 }
 
 /**
- * Parse a part06 XML table row node.
+ * Parse a DICOM standard XML table node.
+ * @param {Node} tableNode A DOM node representing DICOM tags.
+ * @param {String} expectedCaption The expected table caption.
+ * @return {Object} The cresponding DICOM tags.
+ */
+function parseTagsTableNode(tableNode, expectedCaption) {
+  // check node
+  if (!tableNode) {
+    throw new Error('No table node.');
+  }
+  // check caption
+  var captions = tableNode.getElementsByTagName('caption');
+  if (!captions) {
+    throw new Error('No table caption.');
+  }
+  if (captions.length === 0) {
+    throw new Error('Empty table caption.');
+  }
+  var text = captions[0].innerHTML;
+  if (text !== expectedCaption) {
+    throw new Error(
+      'The table caption is not the expected one: ' +
+      expectedCaption + ' != ' + text);
+  }
+  // parse node rows
+  var tags = [];
+  tableNode.querySelectorAll('tbody > tr').forEach(
+    function (node) {
+      tags.push(parseTagTrNode(node));
+    }
+  );
+  return tags;
+}
+
+/**
+ * Parse a DICOM standard XML table row node.
  * @param {Node} trNode A DOM node representing a DICOM tag.
  * @return {Object} The cresponding DICOM tag.
  */
@@ -173,7 +246,7 @@ function parseTagTrNode(trNode) {
 }
 
 /**
- * Parse a tag row and return a tag object.
+ * Parse tag values as array and return a tag object.
  * @param {Array} values A tag row array of values (length=6).
  * @return {Object} A tag object: {group, element, keyword, vr, vm}.
  */
@@ -196,7 +269,7 @@ function parseTagValues(values) {
 }
 
 /**
- * Parse a part06 XML table row cell node.
+ * Parse a DICOM standard XML table row cell node.
  * @param {Node} tdNode A DOM node.
  * @return {string} The tag property value.
  *
@@ -240,7 +313,86 @@ function parseTagTdNode(tdNode) {
   return value;
 }
 
+/**
+ * Parse a VR 32bit VL DICOM standard XML node.
+ * @param {Node} node The content node.
+ * @param {String} expectedCaptionRoot The expected node caption root.
+ * @returns {Array} The list of 32bit VRs.
+ */
+function parseVrVl32bits(node, expectedCaptionRoot) {
+  var caption = node.getElementsByTagName('caption');
+  var text = caption[0].innerHTML;
+  // check caption root
+  if (!text.includes(expectedCaptionRoot)) {
+    throw new Error(
+      'The provided node does not include the expected caption: ' +
+      expectedCaptionRoot + ' != ' + text);
+  }
+  // expecting something like:
+  // 'Data Element with Explicit VR of OB, OW, OF, OD, SQ, UT or UN'
+  var regex = /(?:\s)([A-Z]{2})(?:,|\sor|$)/g;
+  var matches = text.matchAll(regex);
+  var result = [];
+  for (var match of matches) {
+    result.push(match[1]); // [0] includes non capturing groups
+  }
+  return result;
+}
+
+
 // trim and get rid of zero-width space
 function cleanString(str) {
   return str.trim().replace(/\u200B/g, '');
+}
+
+/**
+ * Stringify a tags array.
+ * @param {Array} tags The tags array.
+ * @returns {String} A stringified version of the input array.
+ */
+function stringifyTags(tags) {
+  // check tags
+  if (!tags) {
+    throw new Error('No tags.');
+  }
+  if (tags.length === 0) {
+    throw new Error('Empty tags.');
+  }
+
+  // tabulation
+  var tab = '  ';
+  var quote = '\'';
+  // result text
+  var text = '';
+
+  var group = '';
+  for (var i = 0; i < tags.length; ++i) {
+    var tag = tags[i];
+    var isFirstOfgroup = false;
+    // start group section
+    if (tag.group !== group) {
+      isFirstOfgroup = true;
+      // close previous
+      if (i !== 0) {
+        text += '\n' + tab + '},\n';
+      }
+      // start new
+      group = tag.group;
+      text += tab + quote + tag.group + quote + ': {\n';
+    }
+
+    // tag
+    var tagText = isFirstOfgroup ? '' : ',\n';
+    tagText += tab + tab +
+      quote + tag.element + quote + ': [' +
+      quote + tag.vr + quote + ', ' +
+      quote + tag.vm + quote + ', ' +
+      quote + tag.keyword + quote + ']';
+    text += tagText;
+  }
+
+  // last line
+  text += '\n' + tab + '}\n';
+
+  return text;
 }
