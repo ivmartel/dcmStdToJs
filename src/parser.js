@@ -222,7 +222,7 @@ function parseTdNode(tdNode) {
   // expect one 'para' eñement
   const paras = tdNode.getElementsByTagName('para');
   if (paras.length === 0) {
-    throw new Error('No para in table cell...');
+    return null;
   }
   const para = paras[0];
   if (paras.length !== 1) {

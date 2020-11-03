@@ -143,19 +143,6 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     /Empty tags/,
     'empty tags');
 
-
-  // #15 table with empty row
-  const node15 = getValidBookNode();
-  const table15 = appendValidTableNodes(node15);
-  const row15 = table15.insertRow();
-  row15.insertCell();
-  const fbad15 = function () {
-    parser.parseNode(node15);
-  };
-  assert.raises(fbad15,
-    /in table cell/,
-    'table node with no para throws error.');
-
   // #20 table with content
   const node20 = getValidBookNode();
   const table20 = appendValidTableNodes(node20);
