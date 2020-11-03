@@ -10,7 +10,7 @@ QUnit.module('parser');
 
 // convert a tag into a string array.
 function getTagArray(tag) {
-  var res = [];
+  const res = [];
   res.push('(' + tag.group.substr(2) + ',' + tag.element.substr(2) + ')');
   // name
   res.push(tag.keyword);
@@ -27,11 +27,11 @@ function getTagArray(tag) {
  */
 QUnit.test('Test DicomXMLParser.', function (assert) {
 
-  var parser = new DicomXMLParser();
+  const parser = new DicomXMLParser();
 
   // #00 no book node
-  var node00 = document.createElement('div');
-  var fbad00 = function () {
+  const node00 = document.createElement('div');
+  const fbad00 = function () {
     parser.parseNode(node00);
   };
   assert.raises(fbad00,
@@ -39,10 +39,10 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     'no book node');
 
   // #01 no book label
-  var node01 = document.createElement('div');
-  var book01 = document.createElement('book');
+  const node01 = document.createElement('div');
+  const book01 = document.createElement('book');
   node01.appendChild(book01);
-  var fbad01 = function () {
+  const fbad01 = function () {
     parser.parseNode(node01);
   };
   assert.raises(fbad01,
@@ -51,8 +51,8 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
 
   // utility function
   function getBookNode(label) {
-    var node = document.createElement('div');
-    var book = document.createElement('book');
+    const node = document.createElement('div');
+    const book = document.createElement('book');
     book.setAttribute('label', label);
     node.appendChild(book);
     return node;
@@ -62,8 +62,8 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
   }
 
   // #02 unknown book label
-  var node02 = getBookNode('PS3.66');
-  var fbad02 = function () {
+  const node02 = getBookNode('PS3.66');
+  const fbad02 = function () {
     parser.parseNode(node02);
   };
   assert.raises(fbad02,
@@ -71,8 +71,8 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     'unknown book label');
 
   // #10 no table node
-  var node10 = getValidBookNode();
-  var fbad10 = function () {
+  const node10 = getValidBookNode();
+  const fbad10 = function () {
     parser.parseNode(node10);
   };
   assert.raises(fbad10,
@@ -80,11 +80,11 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     'no table node');
 
   // #11 table with bad label
-  var node11 = getValidBookNode();
-  var table11 = document.createElement('table');
+  const node11 = getValidBookNode();
+  const table11 = document.createElement('table');
   table11.setAttribute('label', '7-77');
   node11.appendChild(table11);
-  var fbad11 = function () {
+  const fbad11 = function () {
     parser.parseNode(node11);
   };
   assert.raises(fbad11,
@@ -92,11 +92,11 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     'bad table node');
 
   // #12 table with no caption
-  var node12 = getValidBookNode();
-  var table12 = document.createElement('table');
+  const node12 = getValidBookNode();
+  const table12 = document.createElement('table');
   table12.setAttribute('label', 'E.1-1');
   node12.appendChild(table12);
-  var fbad12 = function () {
+  const fbad12 = function () {
     parser.parseNode(node12);
   };
   assert.raises(fbad12,
@@ -105,16 +105,16 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
 
   // utility function
   function getTableNode(label, captionText) {
-    var table = document.createElement('table');
+    const table = document.createElement('table');
     table.setAttribute('label', label);
-    var caption = document.createElement('caption');
-    var text = document.createTextNode(captionText);
+    const caption = document.createElement('caption');
+    const text = document.createTextNode(captionText);
     caption.appendChild(text);
     table.appendChild(caption);
     return table;
   }
   function appendValidTableNodes(node) {
-    var validTable0 = getTableNode(
+    const validTable0 = getTableNode(
       'E.1-1', 'Command Fields');
     node.appendChild(validTable0);
     node.appendChild(getTableNode(
@@ -123,10 +123,10 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
   }
 
   // #13 table with bad caption
-  var node13 = getValidBookNode();
-  var table13 = getTableNode('E.1-1', 'ahahah');
+  const node13 = getValidBookNode();
+  const table13 = getTableNode('E.1-1', 'ahahah');
   node13.appendChild(table13);
-  var fbad13 = function () {
+  const fbad13 = function () {
     parser.parseNode(node13);
   };
   assert.raises(fbad13,
@@ -134,9 +134,9 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     'bad table node caption');
 
   // #14 table with no content
-  var node14 = getValidBookNode();
+  const node14 = getValidBookNode();
   appendValidTableNodes(node14);
-  var fbad14 = function () {
+  const fbad14 = function () {
     parser.parseNode(node14);
   };
   assert.raises(fbad14,
@@ -145,11 +145,11 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
 
 
   // #15 table with empty row
-  var node15 = getValidBookNode();
-  var table15 = appendValidTableNodes(node15);
-  var row15 = table15.insertRow();
+  const node15 = getValidBookNode();
+  const table15 = appendValidTableNodes(node15);
+  const row15 = table15.insertRow();
   row15.insertCell();
-  var fbad15 = function () {
+  const fbad15 = function () {
     parser.parseNode(node15);
   };
   assert.raises(fbad15,
@@ -157,26 +157,26 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     'table node with no para throws error.');
 
   // #20 table with content
-  var node20 = getValidBookNode();
-  var table20 = appendValidTableNodes(node20);
-  var row20 = table20.insertRow();
-  var tag20 = {
+  const node20 = getValidBookNode();
+  const table20 = appendValidTableNodes(node20);
+  const row20 = table20.insertRow();
+  const tag20 = {
     group: '0x0004',
     element: '0x1142',
     keyword: 'Specific​Character​Set​',
     vr: 'CS',
     vm: '1'
   };
-  var tagArray20 = getTagArray(tag20);
-  for (var i = 0; i < tagArray20.length; ++i) {
-    var cell20 = row20.insertCell();
-    let para20 = document.createElement('para');
-    var text20 = document.createTextNode(tagArray20[i]);
+  const tagArray20 = getTagArray(tag20);
+  for (let i = 0; i < tagArray20.length; ++i) {
+    const cell20 = row20.insertCell();
+    const para20 = document.createElement('para');
+    const text20 = document.createTextNode(tagArray20[i]);
     para20.appendChild(text20);
     cell20.appendChild(para20);
   }
   node20.appendChild(table20);
-  var result20 = parser.parseNode(node20);
+  const result20 = parser.parseNode(node20);
   // can't make object comparison work...
   // assert.propEqual(result10[0], tag10, 'Table node with content.');
   assert.equal(result20.raw[0].toString(), tag20.toString(),

@@ -1,6 +1,6 @@
 // DICOM versions object
 // (only those published with this repo since NEMA does not do CORS...)
-var dicomVersions = {
+const dicomVersions = {
   '2014': ['a'], // ['a', 'b', 'c'],
   '2015': ['a'], // ['a', 'b', 'c'],
   '2016': ['a'], // ['a', 'b', 'c', 'd', 'e'],
@@ -16,14 +16,14 @@ var dicomVersions = {
  *   and with a 'current' first element.
  */
 export function getDicomVersions() {
-  var keys = Object.keys(dicomVersions);
+  const keys = Object.keys(dicomVersions);
   keys.sort(compare);
   // create version strings
-  var versions = [];
-  for (var i = 0; i < keys.length; ++i) {
-    var majorVersion = keys[i];
-    var minorVersions = dicomVersions[majorVersion];
-    for (var j = 0; j < minorVersions.length; ++j) {
+  const versions = [];
+  for (let i = 0; i < keys.length; ++i) {
+    const majorVersion = keys[i];
+    const minorVersions = dicomVersions[majorVersion];
+    for (let j = 0; j < minorVersions.length; ++j) {
       versions.push(majorVersion + minorVersions[j]);
     }
   }
@@ -47,10 +47,10 @@ function compare(a, b) {
  * }
  */
 export function getDicomPart06Links() {
-  var partNumber = '06';
-  var versions = getDicomVersions();
-  var links = {};
-  for (var i = 0; i < versions.length; ++i) {
+  const partNumber = '06';
+  const versions = getDicomVersions();
+  const links = {};
+  for (let i = 0; i < versions.length; ++i) {
     storeLink(links, versions[i], partNumber);
   }
   // add current
@@ -75,14 +75,14 @@ function storeLink(storage, version, pNumber) {
  */
 function getNemaLink(version, format, partNumber) {
   // no https...
-  var nemaRoot = 'http://dicom.nema.org/medical/dicom/';
-  var partFileName = 'part' + partNumber;
-  var link = nemaRoot + version + '/';
+  const nemaRoot = 'http://dicom.nema.org/medical/dicom/';
+  const partFileName = 'part' + partNumber;
+  let link = nemaRoot + version + '/';
   if (format === 'xml') {
     // not published with CORS...
     //link += 'source/docbook/' +
     //  partFileName + '/' + partFileName + '.xml';
-    var githubRoot = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard/';
+    const githubRoot = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard/';
     link = githubRoot + version + '-' + partFileName + '.xml';
   } else if (format === 'html') {
     link += 'output/html/' +

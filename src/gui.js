@@ -26,7 +26,7 @@ export class Gui {
  * @param {Event} event A progress event.
  */
 function setProgress(event) {
-  var progressBar = document.getElementById('progressBar');
+  const progressBar = document.getElementById('progressBar');
   if (event.lengthComputable) {
     progressBar.max = event.total;
     progressBar.value = event.loaded;
@@ -38,7 +38,7 @@ function setProgress(event) {
  * @param {Event} event The parse button click event.
  */
 function onParseButton(event) {
-  var button = event.target;
+  const button = event.target;
 
   // reset progress
   setProgress({loaded: 0, total: 100, lengthComputable: true});
@@ -47,22 +47,22 @@ function onParseButton(event) {
   button.disabled = true;
 
   // clear output zone
-  var outputDiv = document.getElementById('output');
+  const outputDiv = document.getElementById('output');
   outputDiv.innerHTML = '';
 
-  var parser = new DicomXMLParser();
+  const parser = new DicomXMLParser();
 
   // parse file if provided, parse link otherwise
-  var fileInputElement = document.getElementById('fileupload');
+  const fileInputElement = document.getElementById('fileupload');
   if (fileInputElement.files.length === 1) {
-    var file = fileInputElement.files[0];
-    var reader = new FileReader();
+    const file = fileInputElement.files[0];
+    const reader = new FileReader();
     reader.onload = function (event) {
       // enable button
       button.disabled = false;
       // show tags
-      var domParser = new DOMParser();
-      var doc = domParser.parseFromString(
+      const domParser = new DOMParser();
+      const doc = domParser.parseFromString(
         event.target.result, 'application/xml');
       try {
         showResult(parser.parseNode(doc));
@@ -78,17 +78,17 @@ function onParseButton(event) {
     reader.readAsText(file);
   } else {
     // use selected version or default
-    var dicomVersionsSelect = document.getElementById('dicomVersions');
-    var selectedVersion = dicomVersionsSelect.options[
+    const dicomVersionsSelect = document.getElementById('dicomVersions');
+    let selectedVersion = dicomVersionsSelect.options[
       dicomVersionsSelect.selectedIndex
     ].value;
-    var defaultVersion = '2019a';
+    const defaultVersion = '2019a';
     if (selectedVersion.length === 0) {
       selectedVersion = defaultVersion;
     }
 
-    var url = nema.getDicomPart06Links()[selectedVersion].xml;
-    var request = new XMLHttpRequest();
+    const url = nema.getDicomPart06Links()[selectedVersion].xml;
+    const request = new XMLHttpRequest();
     request.open('GET', url, true);
     request.responseType = 'document';
     request.overrideMimeType('text/xml'); // force xml
@@ -118,7 +118,7 @@ function onParseButton(event) {
 function showResult(result) {
   // append to page as text area
   if (Array.isArray(result)) {
-    for (var i = 0; i < result.length; ++i) {
+    for (let i = 0; i < result.length; ++i) {
       appendTextArea('result-' + i, result[i].asString);
     }
   } else {
@@ -127,11 +127,11 @@ function showResult(result) {
 }
 
 /**
- *
+ * Show an error result.
  */
 function showError(error) {
   console.error(error);
-  var message = error;
+  let message = error;
   if (typeof error.message !== 'undefined') {
     message = error.message;
   }
@@ -142,7 +142,7 @@ function showError(error) {
  * Append a text area to the ouput div.
  */
 function appendTextArea(name, content) {
-  var area = document.createElement('textarea');
+  const area = document.createElement('textarea');
   area.id = name;
   area.appendChild(document.createTextNode(content));
   area.spellcheck = false;
@@ -152,7 +152,7 @@ function appendTextArea(name, content) {
     area.rows = 20;
   }
 
-  var div = document.getElementById('output');
+  const div = document.getElementById('output');
   div.appendChild(area);
 }
 
@@ -160,18 +160,18 @@ function appendTextArea(name, content) {
  * Update version select with available standard versions
  */
 function updateVersionSelect() {
-  var versionSelect = document.getElementById('dicomVersions');
+  const versionSelect = document.getElementById('dicomVersions');
 
   // place holder option
-  var option = document.createElement('option');
+  let option = document.createElement('option');
   option.disabled = true;
   option.selected = true;
   option.text = 'Select a version';
   option.value = '';
   versionSelect.add(option);
   // version options
-  var versions = nema.getDicomVersions();
-  for (var i = 0; i < versions.length; ++i) {
+  const versions = nema.getDicomVersions();
+  for (let i = 0; i < versions.length; ++i) {
     option = document.createElement('option');
     option.text = versions[i];
     option.value = versions[i];
@@ -188,17 +188,17 @@ function updateVersionSelect() {
  *
  */
 function updateVersionLinks(version) {
-  var links = nema.getDicomPart06Links()[version];
+  const links = nema.getDicomPart06Links()[version];
   // xml standard link
-  var xmlLink = document.createElement('a');
+  const xmlLink = document.createElement('a');
   xmlLink.href = links.xml;
   xmlLink.appendChild(document.createTextNode('xml'));
   // html standard link
-  var htmlLink = document.createElement('a');
+  const htmlLink = document.createElement('a');
   htmlLink.href = links.html;
   htmlLink.appendChild(document.createTextNode('html'));
 
-  var versionLinks = document.getElementById('versionLinks');
+  const versionLinks = document.getElementById('versionLinks');
   // clear
   versionLinks.innerHTML = '';
   // add new links

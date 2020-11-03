@@ -13,21 +13,21 @@ export class DicomXMLParser {
    */
   parseNode(partNode) {
     // get book node
-    var book = partNode.querySelector('book');
+    const book = partNode.querySelector('book');
     if (!book) {
       throw new Error('No book node.');
     }
     // get book label
-    var label = book.getAttribute('label');
+    const label = book.getAttribute('label');
     if (!label) {
       throw new Error('No book label.');
     }
 
-    var result = null;
+    let result = null;
 
     if (label === 'PS3.5') {
       // 32-bit VL VRs
-      var vrs = parseVrVl32bits(
+      const vrs = parseVrVl32bits(
         partNode.querySelector('table[label=\'7.1-1\']'),
         'Data Element with Explicit VR');
       result = {
@@ -36,7 +36,7 @@ export class DicomXMLParser {
         asString: vrs.toString()
       };
     } else if (label === 'PS3.6') {
-      var tags36 = [];
+      let tags36 = [];
       // 0002: DICOM File Meta Elements
       tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'7-1\']'),
@@ -50,19 +50,19 @@ export class DicomXMLParser {
         partNode.querySelector('table[label=\'6-1\']'),
         'Registry of DICOM Data Elements'));
 
-      var adaptedTags36 = adaptTagsForDwv(tags36);
-      var tagsResults = {
+      const adaptedTags36 = adaptTagsForDwv(tags36);
+      const tagsResults = {
         raw: tags36,
         adapted: adaptedTags36,
         asString: stringifyTags(adaptedTags36)
       };
 
       // transfer syntax
-      var uids = parseUidTableNode(
+      const uids = parseUidTableNode(
         partNode.querySelector('table[label=\'A-1\']'),
         'UID Values');
-      var adaptedUids = adaptUidsForDwv(uids);
-      var uidsResults = {
+      const adaptedUids = adaptUidsForDwv(uids);
+      const uidsResults = {
         raw: uids,
         adapted: adaptedUids,
         asString: stringifyUids(adaptedUids)
@@ -70,7 +70,7 @@ export class DicomXMLParser {
 
       result = [tagsResults, uidsResults];
     } else if (label === 'PS3.7') {
-      var tags37 = [];
+      let tags37 = [];
       // 0000: command
       tags37 = tags37.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'E.1-1\']'),
@@ -80,7 +80,7 @@ export class DicomXMLParser {
         partNode.querySelector('table[label=\'E.2-1\']'),
         'Retired Command Fields'));
 
-      var adaptedTags37 = adaptTagsForDwv(tags37);
+      const adaptedTags37 = adaptTagsForDwv(tags37);
       result = {
         raw: tags37,
         adapted: adaptedTags37,
@@ -118,8 +118,8 @@ function getCompare(property) {
  */
 function getMultiCompare(properties) {
   return function (a, b) {
-    var res = null;
-    for (var i = 0; i < properties.length; ++i) {
+    let res = null;
+    for (let i = 0; i < properties.length; ++i) {
       res = getCompare(properties[i])(a, b);
       // if result is not zero, exit
       if (res !== 0) {
@@ -144,7 +144,7 @@ function parseTableNode(tableNode, expectedCaption) {
   // check caption
   checkNodeCaption(tableNode, expectedCaption);
   // parse node rows
-  var values = [];
+  const values = [];
   tableNode.querySelectorAll('tbody > tr').forEach(
     function (node) {
       values.push(parseTrNode(node));
@@ -164,14 +164,14 @@ function checkNodeCaption(node, expectedCaption, isEqualCheck) {
   if (typeof isEqualCheck === 'undefined') {
     isEqualCheck = true;
   }
-  var captions = node.getElementsByTagName('caption');
+  const captions = node.getElementsByTagName('caption');
   if (!captions) {
     throw new Error('No node caption.');
   }
   if (captions.length === 0) {
     throw new Error('Empty node caption.');
   }
-  var text = captions[0].innerHTML;
+  const text = captions[0].innerHTML;
   if (isEqualCheck) {
     if (text !== expectedCaption) {
       throw new Error(
@@ -194,7 +194,7 @@ function checkNodeCaption(node, expectedCaption, isEqualCheck) {
  */
 function parseTrNode(trNode) {
   // table cell values
-  var properties = [];
+  const properties = [];
   trNode.querySelectorAll('td').forEach(function (node) {
     properties.push(parseTdNode(node));
   });
@@ -218,15 +218,15 @@ function parseTrNode(trNode) {
  * </para>
  */
 function parseTdNode(tdNode) {
-  var property;
+  let property;
   // expect one 'para' eñement
-  var paras = tdNode.getElementsByTagName('para');
+  const paras = tdNode.getElementsByTagName('para');
   if (paras.length === 0) {
     throw new Error('No para in table cell...');
   }
-  var para = paras[0];
+  const para = paras[0];
   if (paras.length !== 1) {
-    var label = para.getAttribute('xml:id');
+    const label = para.getAttribute('xml:id');
     console.warn(
       'Using first para (label: ' + label + ') of ' +
       paras.length + ' (expected just one...)');
@@ -234,7 +234,7 @@ function parseTdNode(tdNode) {
   // parse childs
   if (para.childNodes.length !== 0) {
     // if the para contains an emphasis child, use its content
-    var emphasis = para.getElementsByTagName('emphasis');
+    const emphasis = para.getElementsByTagName('emphasis');
     if (emphasis.length !== 0) {
       if (emphasis.length !== 1) {
         throw new Error('Not the expected \'emphasis\' elements length.');
@@ -261,10 +261,10 @@ function cleanString(str) {
  * @return {Array} The list of DICOM tags objects.
  */
 function parseTagsTableNode(tableNode, expectedCaption) {
-  var values = parseTableNode(tableNode, expectedCaption);
-  var tags = [];
-  var tag = null;
-  for (var i = 0; i < values.length; ++i) {
+  const values = parseTableNode(tableNode, expectedCaption);
+  const tags = [];
+  let tag = null;
+  for (let i = 0; i < values.length; ++i) {
     tag = tagPropertiesToObject(values[i]);
     if (tag) {
       tags.push(tag);
@@ -280,10 +280,10 @@ function parseTagsTableNode(tableNode, expectedCaption) {
  * @returns {Array} The list of transfer syntax UID objects.
  */
 function parseUidTableNode(tableNode, expectedCaption) {
-  var values = parseTableNode(tableNode, expectedCaption);
-  var uids = [];
-  var uid = null;
-  for (var i = 0; i < values.length; ++i) {
+  const values = parseTableNode(tableNode, expectedCaption);
+  const uids = [];
+  let uid = null;
+  for (let i = 0; i < values.length; ++i) {
     uid = uidPropertiesToObject(values[i]);
     if (uid) {
       uids.push(uid);
@@ -307,12 +307,12 @@ function parseVrVl32bits(node, expectedCaptionRoot) {
   checkNodeCaption(node, expectedCaptionRoot, false);
   // expecting something like:
   // 'Data Element with Explicit VR of OB, OW, OF, OD, SQ, UT or UN'
-  var regex = /(?:\s)([A-Z]{2})(?:,|\sor|$)/g;
-  var caption = node.getElementsByTagName('caption');
-  var text = caption[0].innerHTML;
-  var matches = text.matchAll(regex);
-  var result = [];
-  for (var match of matches) {
+  const regex = /(?:\s)([A-Z]{2})(?:,|\sor|$)/g;
+  const caption = node.getElementsByTagName('caption');
+  const text = caption[0].innerHTML;
+  const matches = text.matchAll(regex);
+  const result = [];
+  for (const match of matches) {
     result.push(match[1]); // [0] includes non capturing groups
   }
   return result;
@@ -329,9 +329,9 @@ function tagPropertiesToObject(properties) {
       'Not the expected tag properties size: ' + properties.length);
   }
   // split (group,element)
-  var geSplit = properties[0].split(',');
-  var group = '0x' + geSplit[0].substr(1, 4).toString();
-  var element = '0x' + geSplit[1].substr(0, 4).toString();
+  const geSplit = properties[0].split(',');
+  const group = '0x' + geSplit[0].substr(1, 4).toString();
+  const element = '0x' + geSplit[1].substr(0, 4).toString();
   // return
   return {
     group: group,
@@ -351,7 +351,7 @@ function uidPropertiesToObject(properties) {
   if (properties.length !== 4) {
     throw new Error('Not the expected UID values size: ' + properties.length);
   }
-  var uid = null;
+  let uid = null;
   // check UID type
   if (properties[2] === 'Transfer Syntax') {
     uid = {
@@ -388,24 +388,24 @@ function adaptTagsForDwv(inputTags) {
   }
 
   // clone input
-  var tags = inputTags.slice();
+  const tags = inputTags.slice();
 
   // list groups
-  var groups = [];
-  for (var t = 0; t < tags.length; ++t) {
+  const groups = [];
+  for (let t = 0; t < tags.length; ++t) {
     // replace 'x's
     tags[t].group = replaceXs(tags[t].group);
     tags[t].element = replaceXs(tags[t].element);
     // list groups
-    var grp = tags[t].group;
+    const grp = tags[t].group;
     if (!groups.includes(grp)) {
       groups.push(grp);
     }
   }
 
   // add GenericGroupLength to groups
-  for (var g = 0; g < groups.length; ++g) {
-    var group = groups[g];
+  for (let g = 0; g < groups.length; ++g) {
+    const group = groups[g];
     if (group !== '0x0000' && group !== '0x0002') {
       tags.push({
         group: group,
@@ -421,8 +421,8 @@ function adaptTagsForDwv(inputTags) {
   tags.sort(getMultiCompare(['group', 'element']));
 
   // check VRs
-  for (var i = 0; i < tags.length; ++i) {
-    var vr = tags[i].vr;
+  for (let i = 0; i < tags.length; ++i) {
+    let vr = tags[i].vr;
     if (typeof vr !== 'undefined') {
       if (vr.substr(0, 8) === 'See Note') {
         // #modif "See Note" -> "NONE"
@@ -452,11 +452,11 @@ function adaptTagsForDwv(inputTags) {
  */
 function adaptUidsForDwv(inputUids) {
   // clone input
-  var uids = inputUids.slice();
+  const uids = inputUids.slice();
 
-  for (var i = 0; i < uids.length; ++i) {
-    var uid = uids[i];
-    var name = uid.name;
+  for (let i = 0; i < uids.length; ++i) {
+    const uid = uids[i];
+    let name = uid.name;
     // replace '&amp'
     if (name.includes('&amp;')) {
       name = name.replace('&amp;', '&');
@@ -464,7 +464,7 @@ function adaptUidsForDwv(inputUids) {
     }
     // remove comment
     if (name.includes(':')) {
-      var pos = name.indexOf(':');
+      const pos = name.indexOf(':');
       uids[i].name = name.substr(0, pos);
     }
   }
@@ -487,15 +487,15 @@ function stringifyTags(tags) {
   }
 
   // tabulation
-  var tab = '  ';
-  var quote = '\'';
+  const tab = '  ';
+  const quote = '\'';
   // result text
-  var text = '';
+  let text = '';
 
-  var group = '';
-  for (var i = 0; i < tags.length; ++i) {
-    var tag = tags[i];
-    var isFirstOfgroup = false;
+  let group = '';
+  for (let i = 0; i < tags.length; ++i) {
+    const tag = tags[i];
+    let isFirstOfgroup = false;
     // start group section
     if (tag.group !== group) {
       isFirstOfgroup = true;
@@ -509,7 +509,7 @@ function stringifyTags(tags) {
     }
 
     // tag
-    var tagText = isFirstOfgroup ? '' : ',\n';
+    let tagText = isFirstOfgroup ? '' : ',\n';
     tagText += tab + tab +
       quote + tag.element + quote + ': [' +
       quote + tag.vr + quote + ', ' +
@@ -539,13 +539,13 @@ function stringifyUids(uids) {
   }
 
   // tabulation
-  var tab = '  ';
-  var quote = '\'';
+  const tab = '  ';
+  const quote = '\'';
   // result text
-  var text = '{\n';
+  let text = '{\n';
 
-  for (var i = 0; i < uids.length; ++i) {
-    var uid = uids[i];
+  for (let i = 0; i < uids.length; ++i) {
+    const uid = uids[i];
     // uid
     text += tab +
       quote + uid.value + quote + ': ' +

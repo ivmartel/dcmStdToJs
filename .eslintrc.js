@@ -14,6 +14,10 @@ module.exports = {
   rules: {
     // formatting rules
 
+    // force let or const (es6)
+    // https://eslint.org/docs/rule/no-var
+    'no-var': ['error'],
+
     // force semi colon
     // https://eslint.org/docs/rules/semi
     semi: ['error'],
