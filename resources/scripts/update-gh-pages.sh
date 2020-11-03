@@ -18,6 +18,8 @@ rm -Rf *
 cp -Rf $HOME/build/ivmartel/dcmStdToJs/* .
 # remove gitignore
 rm -f .gitignore
+# clean up build folder
+rm -Rf build/*
 # clean up node_modules
 rm -Rf node_modules/*
 # clean yarn to force update
