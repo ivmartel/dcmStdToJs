@@ -1,0 +1,7 @@
+body {
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+input[type="file"] {
+  background: #efefef;
+}
