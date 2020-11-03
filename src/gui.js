@@ -65,7 +65,7 @@ function onParseButton(event) {
       var doc = domParser.parseFromString(
         event.target.result, 'application/xml');
       try {
-        showResult(parser.parseNode(doc).asString);
+        showResult(parser.parseNode(doc));
       } catch (error) {
         showError(error);
       }
@@ -97,7 +97,7 @@ function onParseButton(event) {
       button.disabled = false;
       // show tags
       try {
-        showResult(parser.parseNode(event.target.response).asString);
+        showResult(parser.parseNode(event.target.response));
       } catch (error) {
         showError(error);
       }
@@ -119,10 +119,10 @@ function showResult(result) {
   // append to page as text area
   if (Array.isArray(result)) {
     for (var i = 0; i < result.length; ++i) {
-      appendTextArea('result-' + i, result[i]);
+      appendTextArea('result-' + i, result[i].asString);
     }
   } else {
-    appendTextArea('result-0', result);
+    appendTextArea('result-0', result.asString);
   }
 }
 

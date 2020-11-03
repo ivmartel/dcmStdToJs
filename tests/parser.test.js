@@ -58,7 +58,7 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     return node;
   }
   function getValidBookNode() {
-    return getBookNode('PS3.6');
+    return getBookNode('PS3.7');
   }
 
   // #02 unknown book label
@@ -94,7 +94,7 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
   // #12 table with no caption
   var node12 = getValidBookNode();
   var table12 = document.createElement('table');
-  table12.setAttribute('label', '7-1');
+  table12.setAttribute('label', 'E.1-1');
   node12.appendChild(table12);
   var fbad12 = function () {
     parser.parseNode(node12);
@@ -114,19 +114,17 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     return table;
   }
   function appendValidTableNodes(node) {
-    var validTable71 = getTableNode(
-      '7-1', 'Registry of DICOM File Meta Elements');
-    node.appendChild(validTable71);
+    var validTable0 = getTableNode(
+      'E.1-1', 'Command Fields');
+    node.appendChild(validTable0);
     node.appendChild(getTableNode(
-      '8-1', 'Registry of DICOM Directory Structuring Elements'));
-    node.appendChild(getTableNode(
-      '6-1', 'Registry of DICOM Data Elements'));
-    return validTable71;
+      'E.2-1', 'Retired Command Fields'));
+    return validTable0;
   }
 
   // #13 table with bad caption
   var node13 = getValidBookNode();
-  var table13 = getTableNode('7-1', 'ahahah');
+  var table13 = getTableNode('E.1-1', 'ahahah');
   node13.appendChild(table13);
   var fbad13 = function () {
     parser.parseNode(node13);

@@ -23,53 +23,74 @@ export class DicomXMLParser {
       throw new Error('No book label.');
     }
 
-    var raw = null;
-    var adapted = null;
-    var asString = null;
-    var tags = [];
+    var result = null;
 
     if (label === 'PS3.5') {
       // 32-bit VL VRs
-      raw = parseVrVl32bits(
+      var vrs = parseVrVl32bits(
         partNode.querySelector('table[label=\'7.1-1\']'),
         'Data Element with Explicit VR');
-      adapted = raw;
-      asString = raw.toString();
+      result = {
+        raw: vrs,
+        adapted: vrs,
+        asString: vrs.toString()
+      };
     } else if (label === 'PS3.6') {
+      var tags36 = [];
       // 0002: DICOM File Meta Elements
-      tags = tags.concat(parseTagsTableNode(
+      tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'7-1\']'),
         'Registry of DICOM File Meta Elements'));
       // 0004: DICOM Directory Structuring Elements
-      tags = tags.concat(parseTagsTableNode(
+      tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'8-1\']'),
         'Registry of DICOM Directory Structuring Elements'));
       // DICOM Data Elements
-      tags = tags.concat(parseTagsTableNode(
+      tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'6-1\']'),
         'Registry of DICOM Data Elements'));
 
-      raw = tags;
-      adapted = adaptTagsForDwv(raw);
-      asString = stringifyTags(adapted);
+      var adaptedTags36 = adaptTagsForDwv(tags36);
+      var tagsResults = {
+        raw: tags36,
+        adapted: adaptedTags36,
+        asString: stringifyTags(adaptedTags36)
+      };
+
+      // transfer syntax
+      var uids = parseUidTableNode(
+        partNode.querySelector('table[label=\'A-1\']'),
+        'UID Values');
+      var adaptedUids = adaptUidsForDwv(uids);
+      var uidsResults = {
+        raw: uids,
+        adapted: adaptedUids,
+        asString: stringifyUids(adaptedUids)
+      };
+
+      result = [tagsResults, uidsResults];
     } else if (label === 'PS3.7') {
+      var tags37 = [];
       // 0000: command
-      tags = tags.concat(parseTagsTableNode(
+      tags37 = tags37.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'E.1-1\']'),
         'Command Fields'));
       // 0000: command (retired)
-      tags = tags.concat(parseTagsTableNode(
+      tags37 = tags37.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'E.2-1\']'),
         'Retired Command Fields'));
 
-      raw = tags;
-      adapted = adaptTagsForDwv(raw);
-      asString = stringifyTags(adapted);
+      var adaptedTags37 = adaptTagsForDwv(tags37);
+      result = {
+        raw: tags37,
+        adapted: adaptedTags37,
+        asString: stringifyTags(adaptedTags37)
+      };
     } else {
       throw new Error('Unknown book label: ' + label);
     }
 
-    return {raw, adapted, asString};
+    return result;
   }
 }
 
@@ -191,7 +212,36 @@ function adaptTagsForDwv(inputTags) {
 }
 
 /**
- * Parse a DICOM standard XML table node.
+ * Adapt tags:
+ * - replace '&amp;' in name with '&'
+ * - remove comments in name: string after ':'
+ * @param {Array} inputUids An array of UIDs.
+ * @returns {Array} The adapted UIDs as a new array.
+ */
+function adaptUidsForDwv(inputUids) {
+  // clone input
+  var uids = inputUids.slice();
+
+  for (var i = 0; i < uids.length; ++i) {
+    var uid = uids[i];
+    var name = uid.name;
+    // replace '&amp'
+    if (name.includes('&amp;')) {
+      name = name.replace('&amp;', '&');
+      uids[i].name = name;
+    }
+    // remove comment
+    if (name.includes(':')) {
+      var pos = name.indexOf(':');
+      uids[i].name = name.substr(0, pos);
+    }
+  }
+
+  return uids;
+}
+
+/**
+ * Parse a DICOM standard XML tags table node.
  * @param {Node} tableNode A DOM table node.
  * @param {String} expectedCaption The expected table caption.
  * @return {Array} The DICOM tags objects.
@@ -203,6 +253,25 @@ function parseTagsTableNode(tableNode, expectedCaption) {
     tags.push(tagPropertiesToObject(values[i]));
   }
   return tags;
+}
+
+/**
+ * Parse a DICOM standard XML UIDs table node.
+ * @param {Node} tableNode The content node.
+ * @param {String} expectedCaption The expected node caption.
+ * @returns {Array} The list of transfer syntax UIDs.
+ */
+function parseUidTableNode(tableNode, expectedCaption) {
+  var values = parseTableNode(tableNode, expectedCaption);
+  var uids = [];
+  var uid = null;
+  for (var i = 0; i < values.length; ++i) {
+    uid = uidPropertiesToObject(values[i]);
+    if (uid) {
+      uids.push(uid);
+    }
+  }
+  return uids;
 }
 
 /**
@@ -301,6 +370,26 @@ function tagPropertiesToObject(values) {
 }
 
 /**
+ * Parse UID values as array and return a UID object.
+ * @param {Array} values A UID row array of values (length=6).
+ * @return {Object} A tag object: {group, element, keyword, vr, vm}.
+ */
+function uidPropertiesToObject(values) {
+  if (values.length !== 4) {
+    throw new Error('Not the expected UID values size: ' + values.length);
+  }
+  var uid = null;
+  // check UID type
+  if (values[2] === 'Transfer Syntax') {
+    uid = {
+      name: values[1],
+      value: values[0]
+    };
+  }
+  return uid;
+}
+
+/**
  * Parse a DICOM standard XML table row cell node.
  * @param {Node} tdNode A DOM cell node.
  * @return {string} The cell property value.
@@ -373,7 +462,6 @@ function parseVrVl32bits(node, expectedCaptionRoot) {
   return result;
 }
 
-
 // trim and get rid of zero-width space
 function cleanString(str) {
   return str.trim().replace(/\u200B/g, '');
@@ -427,6 +515,40 @@ function stringifyTags(tags) {
 
   // last line
   text += '\n' + tab + '}\n';
+
+  return text;
+}
+
+/**
+ * Stringify a UID array.
+ * @param {Array} uids The UID array.
+ * @returns {String} A stringified version of the input array.
+ */
+function stringifyUids(uids) {
+  // check uids
+  if (!uids) {
+    throw new Error('No uids.');
+  }
+  if (uids.length === 0) {
+    throw new Error('Empty uids.');
+  }
+
+  // tabulation
+  var tab = '  ';
+  var quote = '\'';
+  // result text
+  var text = '{\n';
+
+  for (var i = 0; i < uids.length; ++i) {
+    var uid = uids[i];
+    // uid
+    text += tab +
+      quote + uid.value + quote + ': ' +
+      quote + uid.name + quote + ',\n';
+  }
+
+  // last line
+  text += '\n}\n';
 
   return text;
 }
