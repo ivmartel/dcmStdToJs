@@ -1,6 +1,6 @@
 module.exports = function (grunt) {
   // karma ci test coverage
-  var karmaCiReporters = ['progress'];
+  let karmaCiReporters = ['progress'];
   if (grunt.option('coverage')) {
     karmaCiReporters.push('coverage');
   }

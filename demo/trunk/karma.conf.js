@@ -11,10 +11,8 @@ module.exports = function (config) {
       require('karma-coverage')
     ],
     files: [
-      // src
-      'src/**/*.js',
-      // test
-      'tests/**/*.test.js',
+      {pattern: 'src/**/*.js', type: 'module'},
+      {pattern: 'tests/**/*.test.js', type: 'module'}
     ],
     client: {
       clearContext: false,
