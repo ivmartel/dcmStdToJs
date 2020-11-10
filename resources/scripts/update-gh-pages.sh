@@ -22,8 +22,6 @@ rm -f .gitignore
 rm -Rf build/*
 # clean up node_modules
 rm -Rf node_modules/*
-# clean yarn to force update
-rm -f yarn.lock
 # download production dependencies
 yarn install --prod
 # move back to root of repo
