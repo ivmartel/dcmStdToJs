@@ -1,7 +1,7 @@
-dwv-dcm4chee-web gh-pages
+dcmStdToJs gh-pages
 ===
 
-Source code of the dwv-dcm4chee-web gh-pages branch. 
+Source code of the dcmStdToJs gh-pages branch. 
 
-Page available at http://ivmartel.github.io/dwv-dcm4chee-web.
+Page available at http://ivmartel.github.io/dcmStdToJs.
  
