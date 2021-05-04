@@ -148,7 +148,10 @@ function appendResult(name, content) {
   if (typeof content.name !== 'undefined') {
     const para = document.createElement('p');
     para.appendChild(document.createTextNode(
-      content.name + ' (' + content.origin + ') '));
+      content.name +
+      ' (' + content.origin +
+      ', ' + content.raw.length + ' items) '
+    ));
 
     const link = document.createElement('a');
     link.download = 'result.json';
