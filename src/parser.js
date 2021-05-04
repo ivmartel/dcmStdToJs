@@ -62,7 +62,8 @@ export class DicomXMLParser {
       // transfer syntax
       const uids = parseUidTableNode(
         partNode.querySelector('table[label=\'A-1\']'),
-        'UID Values');
+        'UID Values',
+        'Transfer Syntax');
       const uidsResults = {
         name: 'Transfer syntax UIDs',
         origin: origin,
@@ -70,7 +71,19 @@ export class DicomXMLParser {
         data: stringifyUids(adaptUidsForDwv(uids))
       };
 
-      result = [tagsResults, uidsResults];
+      // SOPs
+      const sops = parseUidTableNode(
+        partNode.querySelector('table[label=\'A-1\']'),
+        'UID Values',
+        'SOP');
+      const sopsResults = {
+        name: 'SOP class and instance UIDs',
+        origin: origin,
+        raw: sops,
+        data: stringifyUids(adaptUidsForDwv(sops))
+      };
+
+      result = [tagsResults, uidsResults, sopsResults];
     } else if (label === 'PS3.7') {
       let tags37 = [];
       // 0000: command
@@ -279,14 +292,15 @@ function parseTagsTableNode(tableNode, expectedCaption) {
  * Parse a DICOM standard XML UIDs table node.
  * @param {Node} tableNode A DOM table node.
  * @param {String} expectedCaption The expected node caption.
+ * @param {String} uidType The UID type.
  * @returns {Array} The list of transfer syntax UID objects.
  */
-function parseUidTableNode(tableNode, expectedCaption) {
+function parseUidTableNode(tableNode, expectedCaption, uidType) {
   const values = parseTableNode(tableNode, expectedCaption);
   const uids = [];
   let uid = null;
   for (let i = 0; i < values.length; ++i) {
-    uid = uidPropertiesToObject(values[i]);
+    uid = uidPropertiesToObject(values[i], uidType);
     if (uid) {
       uids.push(uid);
     }
@@ -347,16 +361,17 @@ function tagPropertiesToObject(properties) {
 /**
  * Parse UID values as array and return a UID object.
  * @param {Array} properties A UID row array of properties (length=6).
+ * @param {String} uidType The UID type.
  * @return {Object} A tag object: {group, element, keyword, vr, vm}.
  */
-function uidPropertiesToObject(properties) {
+function uidPropertiesToObject(properties, uidType) {
   if (properties.length !== 4 && properties.length !== 5) {
     throw new Error('Not the expected UID values size: ' + properties.length);
   }
   let uid = null;
   // check UID type
   // a 'UID keyword' column was added in 2020d, use len-2 instead of index
-  if (properties[properties.length - 2] === 'Transfer Syntax') {
+  if (properties[properties.length - 2].includes(uidType)) {
     uid = {
       name: properties[1],
       value: properties[0]
