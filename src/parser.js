@@ -348,12 +348,13 @@ function tagPropertiesToObject(properties) {
  * @return {Object} A tag object: {group, element, keyword, vr, vm}.
  */
 function uidPropertiesToObject(properties) {
-  if (properties.length !== 4) {
+  if (properties.length !== 4 && properties.length !== 5) {
     throw new Error('Not the expected UID values size: ' + properties.length);
   }
   let uid = null;
   // check UID type
-  if (properties[2] === 'Transfer Syntax') {
+  // a 'UID keyword' column was added in 2020d, use len-2 instead of index
+  if (properties[properties.length - 2] === 'Transfer Syntax') {
     uid = {
       name: properties[1],
       value: properties[0]
