@@ -1,6 +1,6 @@
 # dcmStdToJs
 
-[![Build Status](https://travis-ci.com/ivmartel/dcmStdToJs.svg?branch=master)](https://travis-ci.com/ivmartel/dcmStdToJs)
+[![Node.js CI](https://github.com/ivmartel/dwv/actions/workflows/nodejs-ci.yml/badge.svg)](https://github.com/ivmartel/dwv/actions/workflows/nodejs-ci.yml)
 
 Generate js/json from the DICOM standard in xml.
 
