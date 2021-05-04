@@ -6,12 +6,13 @@ export class DicomXMLParser {
   /**
    * Parse a DICOM standard xml node.
    * @param {Node} partNode A DOM node.
+   * @param {string} origin The origin of the node (optional).
    * @return {Object} An object containing:
    * - raw: the raw tags
    * - adapted: the adapted tags for dwv
    * - asString: the adapted tags as string
    */
-  parseNode(partNode) {
+  parseNode(partNode, origin) {
     // get book node
     const book = partNode.querySelector('book');
     if (!book) {
@@ -31,9 +32,10 @@ export class DicomXMLParser {
         partNode.querySelector('table[label=\'7.1-1\']'),
         'Data Element with Explicit VR');
       result = {
+        name: '32-bit VL VRs',
+        origin: origin,
         raw: vrs,
-        adapted: vrs,
-        asString: vrs.toString()
+        data: vrs.toString()
       };
     } else if (label === 'PS3.6') {
       let tags36 = [];
@@ -50,22 +52,22 @@ export class DicomXMLParser {
         partNode.querySelector('table[label=\'6-1\']'),
         'Registry of DICOM Data Elements'));
 
-      const adaptedTags36 = adaptTagsForDwv(tags36);
       const tagsResults = {
+        name: 'DICOM Tags',
+        origin: origin,
         raw: tags36,
-        adapted: adaptedTags36,
-        asString: stringifyTags(adaptedTags36)
+        data: stringifyTags(adaptTagsForDwv(tags36))
       };
 
       // transfer syntax
       const uids = parseUidTableNode(
         partNode.querySelector('table[label=\'A-1\']'),
         'UID Values');
-      const adaptedUids = adaptUidsForDwv(uids);
       const uidsResults = {
+        name: 'Transfer syntax UIDs',
+        origin: origin,
         raw: uids,
-        adapted: adaptedUids,
-        asString: stringifyUids(adaptedUids)
+        data: stringifyUids(adaptUidsForDwv(uids))
       };
 
       result = [tagsResults, uidsResults];
@@ -80,11 +82,11 @@ export class DicomXMLParser {
         partNode.querySelector('table[label=\'E.2-1\']'),
         'Retired Command Fields'));
 
-      const adaptedTags37 = adaptTagsForDwv(tags37);
       result = {
+        name: 'DICOM tags group 0000',
+        origin: origin,
         raw: tags37,
-        adapted: adaptedTags37,
-        asString: stringifyTags(adaptedTags37)
+        data: stringifyTags(adaptTagsForDwv(tags37))
       };
     } else {
       throw new Error('Unknown book label: ' + label);
@@ -491,7 +493,7 @@ function stringifyTags(tags) {
   const tab = '  ';
   const quote = '\'';
   // result text
-  let text = '';
+  let text = '{\n';
 
   let group = '';
   for (let i = 0; i < tags.length; ++i) {
@@ -519,8 +521,10 @@ function stringifyTags(tags) {
     text += tagText;
   }
 
-  // last line
+  // last group line
   text += '\n' + tab + '}\n';
+  // last line
+  text += '}\n';
 
   return text;
 }
@@ -554,7 +558,7 @@ function stringifyUids(uids) {
   }
 
   // last line
-  text += '\n}\n';
+  text += '}\n';
 
   return text;
 }
