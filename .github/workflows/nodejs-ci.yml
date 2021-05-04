@@ -30,7 +30,7 @@ jobs:
       run: |
         rm -Rf ./node_modules/*
         yarn install --prod
-        mkdir build
+        rm -Rf ./build/*
         cp -Rf *.* ./build
         cp -Rf css node_modules resources src ./build
     - name: Push to gh-pages (if tag or master branch)
