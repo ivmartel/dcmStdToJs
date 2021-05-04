@@ -65,7 +65,7 @@ function onParseButton(event) {
       const doc = domParser.parseFromString(
         event.target.result, 'application/xml');
       try {
-        showResult(parser.parseNode(doc));
+        showResult(parser.parseNode(doc, file.name));
       } catch (error) {
         showError(error);
       }
@@ -97,7 +97,7 @@ function onParseButton(event) {
       button.disabled = false;
       // show tags
       try {
-        showResult(parser.parseNode(event.target.response));
+        showResult(parser.parseNode(event.target.response, url));
       } catch (error) {
         showError(error);
       }
@@ -119,10 +119,10 @@ function showResult(result) {
   // append to page as text area
   if (Array.isArray(result)) {
     for (let i = 0; i < result.length; ++i) {
-      appendTextArea('result-' + i, result[i].asString);
+      appendResult('result-' + i, result[i]);
     }
   } else {
-    appendTextArea('result-0', result.asString);
+    appendResult('result-0', result);
   }
 }
 
@@ -135,16 +135,39 @@ function showError(error) {
   if (typeof error.message !== 'undefined') {
     message = error.message;
   }
-  appendTextArea('error', message);
+  appendResult('error', message);
 }
 
 /**
  * Append a text area to the ouput div.
  */
-function appendTextArea(name, content) {
+function appendResult(name, content) {
+  const div = document.getElementById('output');
+  let contentString = '';
+
+  if (typeof content.name !== 'undefined') {
+    const para = document.createElement('p');
+    para.appendChild(document.createTextNode(
+      content.name + ' (' + content.origin + ') '));
+
+    const link = document.createElement('a');
+    link.download = 'result.json';
+    const blob = new Blob([content.data], {type: 'text/plain'});
+    link.href = window.URL.createObjectURL(blob);
+    link.appendChild(document.createTextNode('download'));
+
+    para.appendChild(link);
+    div.appendChild(para);
+
+    contentString = content.data;
+  } else {
+    contentString = content;
+  }
+
+  console.log(content);
   const area = document.createElement('textarea');
   area.id = name;
-  area.appendChild(document.createTextNode(content));
+  area.appendChild(document.createTextNode(contentString));
   area.spellcheck = false;
   if (name.includes('error')) {
     area.className = 'error';
@@ -152,7 +175,6 @@ function appendTextArea(name, content) {
     area.rows = 20;
   }
 
-  const div = document.getElementById('output');
   div.appendChild(area);
 }
 

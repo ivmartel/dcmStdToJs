@@ -6,9 +6,20 @@ input[type="file"] {
   background: #efefef;
 }
 
-textarea {
-  width: 99%;
+#output {
   margin-top: 10px;
+}
+
+#output p {
+  margin-top: 10px;
+  margin-bottom: 0;
+  background: #efefef;
+  text-align: right;
+  font-size: small;
+}
+
+#output textarea {
+  width: 99%;
 }
 
 .error {
