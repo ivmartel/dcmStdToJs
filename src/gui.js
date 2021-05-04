@@ -164,7 +164,6 @@ function appendResult(name, content) {
     contentString = content;
   }
 
-  console.log(content);
   const area = document.createElement('textarea');
   area.id = name;
   area.appendChild(document.createTextNode(contentString));
