@@ -2,9 +2,6 @@ module.exports = function (grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    eslint: {
-      files: ['Gruntfile.js', 'src/**/*.js', 'tests/**/*.js']
-    },
     watch: {
       main: {
         files: ['**/*.js', '!**/node_modules/**'],
@@ -28,9 +25,7 @@ module.exports = function (grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-eslint');
 
   // tasks
-  grunt.registerTask('lint', ['eslint']);
   grunt.registerTask('start', ['connect', 'watch']);
 };
