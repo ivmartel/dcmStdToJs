@@ -18,18 +18,17 @@
     "grunt-contrib-connect": "^3.0.0",
     "grunt-contrib-watch": "^1.1.0",
     "grunt-eslint": "^23.0.0",
-    "grunt-karma": "^4.0.0",
     "http-server": "^0.12.3",
-    "karma": "^5.2.3",
+    "karma": "^6.3.2",
     "karma-chrome-launcher": "^3.1.0",
-    "karma-coverage": "^2.0.2",
+    "karma-coverage": "^2.0.3",
     "karma-qunit": "^4.1.2",
     "qunit": "^2.15.0"
   },
   "scripts": {
     "start": "grunt start",
     "lint": "grunt lint",
-    "test": "grunt test",
-    "test-ci": "grunt test-ci"
+    "test": "karma start ./karma.conf.js",
+    "test-ci": "karma start ./karma.conf.js --browsers ChromeHeadless --reporters progress,coverage --single-run"
   }
 }
