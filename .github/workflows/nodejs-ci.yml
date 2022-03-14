@@ -18,7 +18,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v1
       with:
-        node-version: '14.x'
+        node-version: '16.x'
     - name: Install dependencies
       run: yarn install --frozen-lockfile
     - name: Run lint
@@ -46,7 +46,7 @@ jobs:
         git checkout gh-pages
         rm -Rf $DEPLOY_DIR$ALL
         cp -Rf ./build/* $DEPLOY_DIR
-        git add $DEPLOY_DIR$ALL
+        git add -A $DEPLOY_DIR
         git diff-index --quiet HEAD ||
           git commit -m "CI run ${{ github.run_number }} pushed to gh-pages"
         git push -fq origin gh-pages
