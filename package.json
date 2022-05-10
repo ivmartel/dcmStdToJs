@@ -13,7 +13,7 @@
     "url": "git://github.com/ivmartel/dcmStdToJs.git"
   },
   "devDependencies": {
-    "eslint": "^8.14.0",
+    "eslint": "^8.15.0",
     "grunt": "^1.5.2",
     "grunt-cli": "^1.4.3",
     "grunt-contrib-connect": "^3.0.0",
