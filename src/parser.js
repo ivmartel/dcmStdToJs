@@ -148,8 +148,8 @@ function getMultiCompare(properties) {
 /**
  * Parse a DICOM standard XML table node.
  * @param {Node} tableNode A DOM table node.
- * @param {String} expectedCaption The expected table caption.
- * @return {Array} The objects property values.
+ * @param {String|undefined} expectedCaption Optional expected table caption.
+ * @return {Array} The table property values.
  */
 function parseTableNode(tableNode, expectedCaption) {
   // check node
@@ -157,15 +157,20 @@ function parseTableNode(tableNode, expectedCaption) {
     throw new Error('No table node.');
   }
   // check caption
-  checkNodeCaption(tableNode, expectedCaption);
+  if (typeof expectedCaption !== 'undefined') {
+    checkNodeCaption(tableNode, expectedCaption);
+  }
   // parse node rows
-  const values = [];
-  tableNode.querySelectorAll('tbody > tr').forEach(
-    function (node) {
-      values.push(parseTrNode(node));
-    }
-  );
-  return values;
+  const properties = [];
+  const nodes = tableNode.querySelectorAll('tbody > tr');
+  if (nodes) {
+    nodes.forEach(
+      function (node) {
+        properties.push(parseTrNode(node));
+      }
+    );
+  }
+  return properties;
 }
 
 /**
@@ -205,14 +210,18 @@ function checkNodeCaption(node, expectedCaption, isEqualCheck) {
 /**
  * Parse a DICOM standard XML table row node.
  * @param {Node} trNode A DOM row node.
- * @return {Array} The row object properties.
+ * @return {Array} The row property values.
  */
 function parseTrNode(trNode) {
-  // table cell values
   const properties = [];
-  trNode.querySelectorAll('td').forEach(function (node) {
-    properties.push(parseTdNode(node));
-  });
+  const nodes = trNode.querySelectorAll('td');
+  if (nodes) {
+    nodes.forEach(
+      function (node) {
+        properties.push(parseTdNode(node));
+      }
+    );
+  }
   // return
   return properties;
 }
@@ -220,7 +229,7 @@ function parseTrNode(trNode) {
 /**
  * Parse a DICOM standard XML table row cell node.
  * @param {Node} tdNode A DOM cell node.
- * @return {string} The cell property value.
+ * @return {Array} The cell property values.
  *
  * Examples:
  *
@@ -233,38 +242,27 @@ function parseTrNode(trNode) {
  * </para>
  */
 function parseTdNode(tdNode) {
-  let property;
-  // expect one 'para' eñement
-  const paras = tdNode.getElementsByTagName('para');
-  if (paras.length === 0) {
-    return null;
-  }
-  const para = paras[0];
-  if (paras.length !== 1) {
-    const label = para.getAttribute('xml:id');
-    console.warn(
-      'Using first para (label: ' + label + ') of ' +
-      paras.length + ' (expected just one...)');
-  }
-  // parse childs
-  if (para.childNodes.length !== 0) {
-    // if the para contains an emphasis child, use its content
-    const emphasis = para.getElementsByTagName('emphasis');
-    if (emphasis.length !== 0) {
-      if (emphasis.length !== 1) {
-        throw new Error('Not the expected \'emphasis\' elements length.');
+  const properties = [];
+  const nodes = tdNode.querySelectorAll('para');
+  if (nodes) {
+    nodes.forEach(
+      function (node) {
+        if (node.textContent) {
+          properties.push(cleanString(node.textContent));
+        }
       }
-      property = emphasis[0].innerHTML;
-    } else {
-      property = para.childNodes[0].nodeValue;
-    }
-    property = cleanString(property);
+    );
   }
   // return
-  return property;
+  return properties;
 }
 
-// trim and get rid of zero-width space
+/**
+ * Trim and get rid of zero-width space.
+ *
+ * @param {string} str The input string.
+ * @returns {string} The cleaned string.
+ */
 function cleanString(str) {
   return str.trim().replace(/\u200B/g, '');
 }
@@ -340,21 +338,22 @@ function parseVrVl32bits(node, expectedCaptionRoot) {
  * @return {Object} A tag object: {group, element, keyword, vr, vm}.
  */
 function tagPropertiesToObject(properties) {
+  // check length (then only use the first element of each item)
   if (properties.length !== 5 && properties.length !== 6) {
     throw new Error(
       'Not the expected tag properties size: ' + properties.length);
   }
   // split (group,element)
-  const geSplit = properties[0].split(',');
+  const geSplit = properties[0][0].split(',');
   const group = '0x' + geSplit[0].substr(1, 4).toString();
   const element = '0x' + geSplit[1].substr(0, 4).toString();
   // return
   return {
     group: group,
     element: element,
-    keyword: typeof properties[2] === 'undefined' ? '' : properties[2],
-    vr: typeof properties[3] === 'undefined' ? '' : properties[3],
-    vm: typeof properties[4] === 'undefined' ? '' : properties[4]
+    keyword: typeof properties[2][0] === 'undefined' ? '' : properties[2][0],
+    vr: typeof properties[3][0] === 'undefined' ? '' : properties[3][0],
+    vm: typeof properties[4][0] === 'undefined' ? '' : properties[4][0]
   };
 }
 
@@ -365,16 +364,17 @@ function tagPropertiesToObject(properties) {
  * @return {Object} A tag object: {group, element, keyword, vr, vm}.
  */
 function uidPropertiesToObject(properties, uidType) {
+  // check length (then only use the first element of each item)
   if (properties.length !== 4 && properties.length !== 5) {
     throw new Error('Not the expected UID values size: ' + properties.length);
   }
   let uid = null;
   // check UID type
   // a 'UID keyword' column was added in 2020d, use len-2 instead of index
-  if (properties[properties.length - 2].includes(uidType)) {
+  if (properties[properties.length - 2][0].includes(uidType)) {
     uid = {
-      name: properties[1],
-      value: properties[0]
+      name: properties[1][0],
+      value: properties[0][0]
     };
   }
   return uid;
@@ -442,15 +442,20 @@ function adaptTagsForDwv(inputTags) {
   for (let i = 0; i < tags.length; ++i) {
     let vr = tags[i].vr;
     if (typeof vr !== 'undefined') {
-      if (vr.substr(0, 8) === 'See Note') {
-        // #modif "See Note" -> "NONE"
-        vr = 'NONE';
-      } else if (vr === 'OB or OW') {
-        // #modif "OB or OW" -> "ox"
-        vr = 'ox';
-      } else if (vr === 'US or SS') {
-        // #modif "US or SS" -> "xs"
-        vr = 'xs';
+      if (vr.length !== 2) {
+        if (vr.substr(0, 8) === 'See Note') {
+          // #modif "See Note" -> "NONE"
+          vr = 'NONE';
+        } else if (vr === 'OB or OW') {
+          // #modif "OB or OW" -> "ox"
+          vr = 'ox';
+        } else if (vr === 'US or SS') {
+          // #modif "US or SS" -> "xs"
+          vr = 'xs';
+        } else {
+          console.warn('Unknown VR: \'' + vr +
+            '\' for ' + tags[i].group + ',' + tags[i].element);
+        }
       }
     } else {
       vr = '';
