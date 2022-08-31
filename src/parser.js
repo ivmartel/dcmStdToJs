@@ -42,14 +42,17 @@ export class DicomXMLParser {
       // 0002: DICOM File Meta Elements
       tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'7-1\']'),
+        partNode,
         'Registry of DICOM File Meta Elements'));
       // 0004: DICOM Directory Structuring Elements
       tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'8-1\']'),
+        partNode,
         'Registry of DICOM Directory Structuring Elements'));
       // DICOM Data Elements
       tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'6-1\']'),
+        partNode,
         'Registry of DICOM Data Elements'));
 
       const tagsResults = {
@@ -62,6 +65,7 @@ export class DicomXMLParser {
       // transfer syntax
       const uids = parseUidTableNode(
         partNode.querySelector('table[label=\'A-1\']'),
+        partNode,
         'UID Values',
         'Transfer Syntax');
       const uidsResults = {
@@ -74,6 +78,7 @@ export class DicomXMLParser {
       // SOPs
       const sops = parseUidTableNode(
         partNode.querySelector('table[label=\'A-1\']'),
+        partNode,
         'UID Values',
         'SOP');
       const sopsResults = {
@@ -89,10 +94,12 @@ export class DicomXMLParser {
       // 0000: command
       tags37 = tags37.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'E.1-1\']'),
+        partNode,
         'Command Fields'));
       // 0000: command (retired)
       tags37 = tags37.concat(parseTagsTableNode(
         partNode.querySelector('table[label=\'E.2-1\']'),
+        partNode,
         'Retired Command Fields'));
 
       result = {
@@ -151,7 +158,7 @@ function getMultiCompare(properties) {
  * @param {String|undefined} expectedCaption Optional expected table caption.
  * @return {Array} The table property values.
  */
-function parseTableNode(tableNode, expectedCaption) {
+function parseTableNode(tableNode, partNode, expectedCaption) {
   // check node
   if (!tableNode) {
     throw new Error('No table node.');
@@ -164,11 +171,9 @@ function parseTableNode(tableNode, expectedCaption) {
   const properties = [];
   const nodes = tableNode.querySelectorAll('tbody > tr');
   if (nodes) {
-    nodes.forEach(
-      function (node) {
-        properties.push(parseTrNode(node));
-      }
-    );
+    for (let node of nodes) {
+      properties.push(parseTrNode(node, partNode));
+    }
   }
   return properties;
 }
@@ -212,15 +217,13 @@ function checkNodeCaption(node, expectedCaption, isEqualCheck) {
  * @param {Node} trNode A DOM row node.
  * @return {Array} The row property values.
  */
-function parseTrNode(trNode) {
+function parseTrNode(trNode, partNode) {
   const properties = [];
   const nodes = trNode.querySelectorAll('td');
   if (nodes) {
-    nodes.forEach(
-      function (node) {
-        properties.push(parseTdNode(node));
-      }
-    );
+    for (let node of nodes) {
+      properties.push(parseTdNode(node, partNode));
+    }
   }
   // return
   return properties;
@@ -228,43 +231,62 @@ function parseTrNode(trNode) {
 
 /**
  * Parse a DICOM standard XML table row cell node.
+ *
  * @param {Node} tdNode A DOM cell node.
  * @return {Array} The cell property values.
- *
- * Examples:
- *
- * <para>(0004,1410)</para>
- *
- * OR
- *
- * <para>
- *   <emphasis role="italic">(0004,1600)</emphasis>
- * </para>
  */
-function parseTdNode(tdNode) {
+function parseTdNode(tdNode, partNode) {
   const properties = [];
-  const nodes = tdNode.querySelectorAll('para');
+  const nodes = tdNode.childNodes;
   if (nodes) {
-    nodes.forEach(
-      function (node) {
-        if (node.textContent) {
-          properties.push(cleanString(node.textContent));
-        }
+    for (let node of nodes) {
+      // type 1 (elements) to avoid #text between elements
+      if (node.nodeType === 1) {
+        properties.push(parseContentNode(node, partNode));
       }
-    );
+    }
   }
   // return
   return properties;
 }
 
 /**
- * Trim and get rid of zero-width space.
+ * Parse a DICOM standard XML table row cell content node,
+ * mainly para and note.
+ *
+ * @param {Node} tdNode A DOM para node.
+ * @return {string} The para value.
+ */
+function parseContentNode(paraNode, partNode) {
+  let content = '';
+  const nodes = paraNode.childNodes;
+  if (nodes) {
+    for (let node of nodes) {
+      if (node.nodeType === 1) {
+        // type 1: element
+        content += parseContentNode(node, partNode);
+      } else if (node.nodeType === 3) {
+        // type 3: text
+        content += node.textContent;
+      } else {
+        console.warn('Un-anticipated node:' + node);
+      }
+    }
+  }
+  // clean
+  content = cleanString(content);
+  // return
+  return content;
+}
+
+/**
+ * Trim and get rid of new line and zero-width space.
  *
  * @param {string} str The input string.
  * @returns {string} The cleaned string.
  */
 function cleanString(str) {
-  return str.trim().replace(/\u200B/g, '');
+  return str.trim().replace(/\n/g, '').replace(/\u200B/g, '');
 }
 
 /**
@@ -273,8 +295,8 @@ function cleanString(str) {
  * @param {String} expectedCaption The expected node caption.
  * @return {Array} The list of DICOM tags objects.
  */
-function parseTagsTableNode(tableNode, expectedCaption) {
-  const values = parseTableNode(tableNode, expectedCaption);
+function parseTagsTableNode(tableNode, partNode, expectedCaption) {
+  const values = parseTableNode(tableNode, partNode, expectedCaption);
   const tags = [];
   let tag = null;
   for (let i = 0; i < values.length; ++i) {
@@ -293,8 +315,8 @@ function parseTagsTableNode(tableNode, expectedCaption) {
  * @param {String} uidType The UID type.
  * @returns {Array} The list of transfer syntax UID objects.
  */
-function parseUidTableNode(tableNode, expectedCaption, uidType) {
-  const values = parseTableNode(tableNode, expectedCaption);
+function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
+  const values = parseTableNode(tableNode, partNode, expectedCaption);
   const uids = [];
   let uid = null;
   for (let i = 0; i < values.length; ++i) {
@@ -551,6 +573,7 @@ function stringifyTags(tags) {
 
 /**
  * Stringify a UID array.
+ *
  * @param {Array} uids The UID array.
  * @returns {String} A stringified version of the input array.
  */
