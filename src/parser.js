@@ -367,8 +367,8 @@ function tagPropertiesToObject(properties) {
   }
   // split (group,element)
   const geSplit = properties[0][0].split(',');
-  const group = '0x' + geSplit[0].substr(1, 4).toString();
-  const element = '0x' + geSplit[1].substr(0, 4).toString();
+  const group = '0x' + geSplit[0].substring(1, 4).toString();
+  const element = '0x' + geSplit[1].substring(0, 4).toString();
   // return
   return {
     group: group,
@@ -465,7 +465,7 @@ function adaptTagsForDwv(inputTags) {
     let vr = tags[i].vr;
     if (typeof vr !== 'undefined') {
       if (vr.length !== 2) {
-        if (vr.substr(0, 8) === 'See Note') {
+        if (vr.substring(0, 8) === 'See Note') {
           // #modif "See Note" -> "NONE"
           vr = 'NONE';
         } else if (vr === 'OB or OW') {
@@ -510,7 +510,7 @@ function adaptUidsForDwv(inputUids) {
     // remove comment
     if (name.includes(':')) {
       const pos = name.indexOf(':');
-      uids[i].name = name.substr(0, pos);
+      uids[i].name = name.substring(0, pos);
     }
   }
 
