@@ -192,7 +192,7 @@ function parseTableNode(tableNode, partNode, expectedCaption) {
   const properties = [];
   const nodes = tableNode.querySelectorAll('tbody > tr');
   if (nodes) {
-    for (let node of nodes) {
+    for (const node of nodes) {
       properties.push(parseTrNode(node, partNode));
     }
   }
@@ -242,7 +242,7 @@ function parseTrNode(trNode, partNode) {
   const properties = [];
   const nodes = trNode.querySelectorAll('td');
   if (nodes) {
-    for (let node of nodes) {
+    for (const node of nodes) {
       properties.push(parseTdNode(node, partNode));
     }
   }
@@ -260,7 +260,7 @@ function parseTdNode(tdNode, partNode) {
   const properties = [];
   const nodes = tdNode.childNodes;
   if (nodes) {
-    for (let node of nodes) {
+    for (const node of nodes) {
       // type 1 (elements) to avoid #text between elements
       if (node.nodeType === 1) {
         properties.push(parseContentNode(node, partNode));
@@ -282,7 +282,7 @@ function parseContentNode(paraNode, partNode) {
   let content = '';
   const nodes = paraNode.childNodes;
   if (nodes) {
-    for (let node of nodes) {
+    for (const node of nodes) {
       if (node.nodeType === 1) {
         // type 1: element
         content += parseContentNode(node, partNode);
@@ -320,8 +320,8 @@ function parseTagsTableNode(tableNode, partNode, expectedCaption) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
   const tags = [];
   let tag = null;
-  for (let i = 0; i < values.length; ++i) {
-    tag = tagPropertiesToObject(values[i]);
+  for (const value of values) {
+    tag = tagPropertiesToObject(value);
     if (tag) {
       tags.push(tag);
     }
@@ -340,8 +340,8 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
   const uids = [];
   let uid = null;
-  for (let i = 0; i < values.length; ++i) {
-    uid = uidPropertiesToObject(values[i], uidType);
+  for (const value of values) {
+    uid = uidPropertiesToObject(value, uidType);
     if (uid) {
       uids.push(uid);
     }
@@ -465,8 +465,7 @@ function adaptTagsForDwv(inputTags) {
   }
 
   // add GenericGroupLength to groups
-  for (let g = 0; g < groups.length; ++g) {
-    const group = groups[g];
+  for (const group of groups) {
     if (group !== '0x0000' && group !== '0x0002') {
       tags.push({
         group: group,
