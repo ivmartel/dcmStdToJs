@@ -138,6 +138,23 @@ function getSelector(xmlid) {
 }
 
 /**
+ * Get the 'linkend' value (an xml:id) of an input string.
+ * Looking for: <xref linkend="sect_C.1-7">
+ *
+ * @param {string} str
+ * @returns {string} The xml:id.
+ */
+function getLinkend(str) {
+  const regex = /linkend="(.+?)"/g;
+  const matches = [...str.matchAll(regex)];
+  // return first result
+  if (matches.length === 0 || matches[0].length < 2) {
+    throw new Error('Cannot find linkend value in: ' + str);
+  }
+  return matches[0][1];
+}
+
+/**
  * Get a compare function for a specific object property.
  * @param {String} property The object property to sort by.
  * @returns A compare function.
@@ -263,7 +280,11 @@ function parseTdNode(tdNode, partNode) {
     for (const node of nodes) {
       // type 1 (elements) to avoid #text between elements
       if (node.nodeType === 1) {
-        properties.push(parseContentNode(node, partNode));
+        if (node.nodeName === 'variablelist') {
+          properties.push(parseVariableListNode(node));
+        } else {
+          properties.push(parseContentNode(node, partNode));
+        }
       }
     }
   }
@@ -285,7 +306,12 @@ function parseContentNode(paraNode, partNode) {
     for (const node of nodes) {
       if (node.nodeType === 1) {
         // type 1: element
-        content += parseContentNode(node, partNode);
+        if (node.nodeName === 'xref') {
+          // just keep linkend for xref
+          content += 'linkend="' + node.attributes.linkend.value + '"';
+        } else {
+          content += parseContentNode(node, partNode);
+        }
       } else if (node.nodeType === 3) {
         // type 3: text
         content += node.textContent;
@@ -296,8 +322,59 @@ function parseContentNode(paraNode, partNode) {
   }
   // clean
   content = cleanString(content);
+
+  // link to section with defined terms
+  // (for ex in module attributes description)
+  if (content.startsWith('See linkend=') &&
+    content.endsWith('for Defined Terms.')) {
+    let foundTermsList = false;
+    const xmlid = getLinkend(content);
+    if (xmlid.startsWith('sect_')) {
+      const subSection = partNode.querySelector(getSelector(xmlid));
+      const nodes = subSection.childNodes;
+      if (nodes) {
+        for (const node of nodes) {
+          if (node.nodeName === 'variablelist') {
+            foundTermsList = true;
+            content = parseVariableListNode(node);
+          }
+        }
+      }
+    }
+    if (!foundTermsList) {
+      console.warn('Did not find terms list with: ' + content);
+    }
+  }
+
   // return
   return content;
+}
+
+/**
+ * Parse a DICOM standard XML VariableList node
+ *
+ * @param {Node} listNode A DOM list node.
+ * @return {string} The list values.
+ */
+function parseVariableListNode(listNode) {
+  let content = 'enum=';
+  const listChilds = listNode.childNodes;
+  if (listChilds) {
+    for (const node of listChilds) {
+      if (node.nodeName === 'varlistentry') {
+        const entries = node.childNodes;
+        if (entries) {
+          for (const entryNode of entries) {
+            if (entryNode.nodeName === 'term') {
+              content += cleanString(entryNode.textContent) + ',';
+            }
+          }
+        }
+      }
+    }
+  }
+  // remove last comma
+  return content.substring(0, content.length - 1);
 }
 
 /**
