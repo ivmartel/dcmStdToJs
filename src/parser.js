@@ -29,7 +29,7 @@ export class DicomXMLParser {
     if (label === 'PS3.5') {
       // 32-bit VL VRs
       const vrs = parseVrVl32bits(
-        partNode.querySelector('table[label=\'7.1-1\']'),
+        partNode.querySelector(getSelector('table_7.1-1')),
         'Data Element with Explicit VR');
       result = {
         name: '32-bit VL VRs',
@@ -41,17 +41,17 @@ export class DicomXMLParser {
       let tags36 = [];
       // 0002: DICOM File Meta Elements
       tags36 = tags36.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'7-1\']'),
+        partNode.querySelector(getSelector('table_7-1')),
         partNode,
         'Registry of DICOM File Meta Elements'));
       // 0004: DICOM Directory Structuring Elements
       tags36 = tags36.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'8-1\']'),
+        partNode.querySelector(getSelector('table_8-1')),
         partNode,
         'Registry of DICOM Directory Structuring Elements'));
       // DICOM Data Elements
       tags36 = tags36.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'6-1\']'),
+        partNode.querySelector(getSelector('table_6-1')),
         partNode,
         'Registry of DICOM Data Elements'));
 
@@ -64,7 +64,7 @@ export class DicomXMLParser {
 
       // transfer syntax
       const uids = parseUidTableNode(
-        partNode.querySelector('table[label=\'A-1\']'),
+        partNode.querySelector(getSelector('table_A-1')),
         partNode,
         'UID Values',
         'Transfer Syntax');
@@ -77,7 +77,7 @@ export class DicomXMLParser {
 
       // SOPs
       const sops = parseUidTableNode(
-        partNode.querySelector('table[label=\'A-1\']'),
+        partNode.querySelector(getSelector('table_A-1')),
         partNode,
         'UID Values',
         'SOP');
@@ -93,12 +93,12 @@ export class DicomXMLParser {
       let tags37 = [];
       // 0000: command
       tags37 = tags37.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'E.1-1\']'),
+        partNode.querySelector(getSelector('table_E.1-1')),
         partNode,
         'Command Fields'));
       // 0000: command (retired)
       tags37 = tags37.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'E.2-1\']'),
+        partNode.querySelector(getSelector('table_E.2-1')),
         partNode,
         'Retired Command Fields'));
 
@@ -114,6 +114,27 @@ export class DicomXMLParser {
 
     return result;
   }
+}
+
+/**
+ * Get a selector for an element with the input xml:id.
+ * Looking for:
+ * - <table xml:id="xmlid"> when the id starts with 'table_'
+ * - <section xml:id="xmlid"> when the id starts with 'sect_'
+ *
+ * @param {string} xmlid The id to look for.
+ * @returns {string} The selector.
+ */
+function getSelector(xmlid) {
+  let prefix = '';
+  if (xmlid.startsWith('table_')) {
+    prefix = 'table[*|id=\'';
+  } else if (xmlid.startsWith('sect_')) {
+    prefix = 'section[*|id=\'';
+  } else {
+    throw new Error('Unknown xml:id format.');
+  }
+  return prefix + xmlid + '\']';
 }
 
 /**
