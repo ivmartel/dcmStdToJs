@@ -367,7 +367,7 @@ function tagPropertiesToObject(properties) {
   }
   // split (group,element)
   const geSplit = properties[0][0].split(',');
-  const group = '0x' + geSplit[0].substring(1, 4).toString();
+  const group = '0x' + geSplit[0].substring(1, 5).toString();
   const element = '0x' + geSplit[1].substring(0, 4).toString();
   // return
   return {
