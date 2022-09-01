@@ -368,8 +368,12 @@ function parseContentNode(paraNode, partNode) {
       if (nodes) {
         for (const node of nodes) {
           if (node.nodeName === 'variablelist') {
-            foundTermsList = true;
-            content = parseVariableListNode(node);
+            if (!foundTermsList) {
+              foundTermsList = true;
+              content = parseVariableListNode(node);
+            } else {
+              console.warn('Multiple variable list for ' + xmlid);
+            }
           }
         }
       }
