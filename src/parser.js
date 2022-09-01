@@ -119,8 +119,8 @@ export class DicomXMLParser {
 /**
  * Get a selector for an element with the input xml:id.
  * Looking for:
- * - <table xml:id="xmlid"> when the id starts with 'table_'
- * - <section xml:id="xmlid"> when the id starts with 'sect_'
+ * - <table label="l"> when the id starts with 'table_'
+ * - <section label="l"> when the id starts with 'sect_'
  *
  * @param {string} xmlid The id to look for.
  * @returns {string} The selector.
@@ -128,13 +128,13 @@ export class DicomXMLParser {
 function getSelector(xmlid) {
   let prefix = '';
   if (xmlid.startsWith('table_')) {
-    prefix = 'table[*|id=\'';
+    prefix = 'table[label=\'' + xmlid.substring(6);
   } else if (xmlid.startsWith('sect_')) {
-    prefix = 'section[*|id=\'';
+    prefix = 'section[label=\'' + xmlid.substring(5);
   } else {
     throw new Error('Unknown xml:id format.');
   }
-  return prefix + xmlid + '\']';
+  return prefix + '\']';
 }
 
 /**
