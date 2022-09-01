@@ -26,19 +26,21 @@ document.addEventListener('DOMContentLoaded', gui.onDOMContentLoaded);
 
 <body>
 
-  <h2>DICOM standard xml2json</h2>
+  <h2>DICOM standard as json/js</h2>
 
   <p>
     DICOM versions: <a href="http://dicom.nema.org/medical/dicom/" target="_parent">dicom.nema.org/medical/dicom/</a>.
     NEMA does not publish the standard with CORS enabled, so only those published here are available
-    for the online parsing option. Online version are between 4 to 7MB. 
+    for the online parsing option. Online version are between 4 to 7MB.
     <b>Warning</b>: values are modified by this code, see the <code>adapt*</code>
     functions of the <code>src/parser.js</code> file.
   </p>
 
   <p>
-    Parts details: <i>(05)</i> list of 32bit VL VRs, <i>(06)</i> tags group '0002', '0004' and superior + UIDs
-    <i>(07)</i> tags group '0000'.
+    <b>part03</b>: IOD modules;
+    <b>part05</b>: list of 32bit VL VRs;
+    <br><b>part06</b> tags group '0002', '0004' and superior + UIDs;
+    <b>part07</b> tags group '0000'.
   </p>
 
   <ul>

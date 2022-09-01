@@ -26,7 +26,35 @@ export class DicomXMLParser {
 
     let result = null;
 
-    if (label === 'PS3.5') {
+    if (label === 'PS3.3') {
+      result = [];
+      // summary: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html
+      const iodList = [
+        {name: 'CT Image', label: 'table_A.3-1'},
+        {name: 'MR Image', label: 'table_A.4-1'},
+        // {name: 'NM Image', label: 'table_A.5-1'},
+        // {name: 'US Image', label: 'table_A.6-1'},
+        // {name: 'PET Image', label: 'table_A.21.3-1'},
+        // {name: 'Segmentation', label: 'table_A.51-1'}
+      ];
+
+      for (const iod of iodList) {
+        const iods = parseIODModulesNode(
+          partNode.querySelector(getSelector(iod.label)),
+          partNode,
+          iod.name + ' IOD Modules'
+        );
+
+        const iodModules = parseModulesFromIodList(iods, partNode);
+
+        result.push({
+          name: iod.name + ' IOD Modules',
+          origin: origin,
+          raw: iodModules,
+          data: JSON.stringify(iodModules, null, '  ')
+        });
+      }
+    } else if (label === 'PS3.5') {
       // 32-bit VL VRs
       const vrs = parseVrVl32bits(
         partNode.querySelector(getSelector('table_7.1-1')),
@@ -237,9 +265,14 @@ function checkNodeCaption(node, expectedCaption, isEqualCheck) {
   const text = captions[0].innerHTML;
   if (isEqualCheck) {
     if (text !== expectedCaption) {
-      throw new Error(
-        'The node caption is not the expected one: ' +
-        expectedCaption + ' != ' + text);
+      if (text.toLowerCase() === expectedCaption.toLowerCase()) {
+        console.warn('Accepting caption with different case: ' +
+          expectedCaption);
+      } else {
+        throw new Error(
+          'The node caption is not the expected one: ' +
+          expectedCaption + ' != ' + text);
+      }
     }
   } else {
     if (!text.includes(expectedCaption)) {
@@ -424,6 +457,161 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
     }
   }
   return uids;
+}
+
+/**
+ * Parse a Information Entities (IE) modules DICOM standard XML node.
+ * Usage property:
+ * - M: Mandatory;
+ * - C: Conditional;
+ * - U: User Option;
+ * https://dicom.nema.org/medical/dicom/current/output/chtml/part03/chapter_A.html#sect_A.1.3
+ *
+ * @param {Node} node The content node.
+ * @returns {Array} The list of ....
+ */
+function parseIODModulesNode(node, partNode, name) {
+  const rows = parseTableNode(node, partNode, name);
+  const result = [];
+  for (const row of rows) {
+    // do not use Information Entities (IE) column if present
+    if (row.length === 4) {
+      result.push(row.slice(1));
+    } else {
+      result.push(row);
+    }
+  }
+  return result;
+}
+
+/**
+ * Get modules from an IOD list.
+ *
+ * @param {array} list The IOD module list.
+ * @param {Node} partNode The main part node.
+ * @returns {object} The IOD object with the module content.
+ */
+function parseModulesFromIodList(list, partNode) {
+  const result = {};
+  for (const item of list) {
+    const name = item[0][0];
+    // get the module from the referenced section
+    const xmlid = getLinkend(item[1][0]);
+    const sectNode = partNode.querySelector(getSelector(xmlid));
+    for (const node of sectNode.childNodes) {
+      // stop at first table
+      if (node.nodeName === 'table') {
+        result[name] = objectifyModules(parseModuleAttributesNode(
+          node, partNode, name + ' Module Attributes'
+        ));
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+let macros = {};
+
+/**
+ * Parse a Information Entities (IE) modules DICOM standard XML node.
+ * Type property:
+ * - 1: Required; 1C: Type 1 with condition;
+ * - 2: Required, Empty if Unknown; 2C: Type 2 with condition;
+ * - 3: Optional
+ * https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_7.4.html
+ *
+ * @param {Node} node The content node.
+ * @returns {Array} The list of ....
+ */
+function parseModuleAttributesNode(node, partNode, name) {
+  // expecting macro includes as: 'Include <xref linkend="table_10-18"
+  //   xrefstyle="select: label quotedtitle"/>'
+  const macroStart = 'Include linkend=';
+  const xrefLinkRegex = /linkend="(.+?)"/g;
+
+  const rows = parseTableNode(node, partNode, name);
+  const result = [];
+  let startSq0 = false;
+  let startSq1 = false;
+  for (const row of rows) {
+    let attribute;
+    const attributeName = cleanString(row[0][0]);
+    let includeCase = false;
+
+    if (row.length === 4) {
+      // default: Attribute Name, Tag, Type, Attribute Description
+      attribute = [row];
+    } else if (attributeName.includes(macroStart)) {
+      // include case
+      includeCase = true;
+      const xmlid = [...attributeName.matchAll(xrefLinkRegex)][0][1];
+      if (xmlid.startsWith('table_')) {
+        // store macro if not done yet
+        if (!macros[xmlid]) {
+          const subTable = partNode.querySelector(getSelector(xmlid));
+          macros[xmlid] =
+            parseModuleAttributesNode(subTable, partNode, undefined);
+        }
+        attribute = macros[xmlid];
+      }
+    } else {
+      // avoid these rows
+      // code sequence: BASIC CODED ENTRY ATTRIBUTES, ENHANCED ENCODING MODE
+      if (attributeName !== 'BASIC CODED ENTRY ATTRIBUTES' &&
+        attributeName !== 'ENHANCED ENCODING MODE') {
+        console.warn('Unexpected row: \'' + attributeName + '\'');
+      }
+      continue;
+    }
+
+    // handle sequences
+    if (attributeName.startsWith('>')) {
+      // previous attribute (first level)
+      let previousAtt = result[result.length - 1];
+      // set flag and append array for first item
+      if (!startSq0) {
+        previousAtt.push([]);
+        startSq0 = true;
+      }
+      // remove '>' from name
+      if (!includeCase) {
+        attribute[0][0][0] = attribute[0][0][0].substring(1);
+      }
+
+      if (attributeName.startsWith('>>')) {
+        // previous attribute (second level)
+        previousAtt = previousAtt[4][previousAtt[4].length - 1];
+        // set flag and append array for first item
+        if (!startSq1) {
+          previousAtt.push([]);
+          startSq1 = true;
+        }
+      } else {
+        // reset second level flag
+        if (startSq1) {
+          startSq1 = false;
+        }
+      }
+      // append to previous attribute
+      previousAtt[4].push(...attribute);
+    } else if (attributeName.startsWith('>>>')) {
+      console.warn('Not expecting a triple \'>\'');
+    } else {
+      // reset first level flag
+      if (startSq0) {
+        startSq0 = false;
+      }
+      // reset second level flag
+      if (startSq1) {
+        startSq1 = false;
+      }
+      // append to result
+      result.push(...attribute);
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -701,4 +889,34 @@ function stringifyUids(uids) {
   text += '}\n';
 
   return text;
+}
+
+/**
+ * Objectify a modules array.
+ *
+ * @param {Array} modules The modules array.
+ * @returns {Array} An array of module objects.
+ */
+function objectifyModules(modules) {
+  let result = [];
+  for (const module of modules) {
+    let obj = {
+      name: module[0][0],
+      tag: module[1][0],
+      type: module[2][0],
+      desc: module[3][0]
+    };
+    // looks like: 'enum=ITEM0,ITEM1'
+    const enumList = module[3].find(item => item.startsWith('enum='));
+    if (enumList) {
+      obj.enum = enumList.substring(5);
+    }
+    // include
+    if (module.length === 5) {
+      obj.items = objectifyModules(module[4]);
+    }
+    result.push(obj);
+  }
+
+  return result;
 }
