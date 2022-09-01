@@ -465,49 +465,47 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
 
 /**
  * Parse a Information Entities (IE) modules DICOM standard XML node.
- * Usage property:
- * - M: Mandatory;
- * - C: Conditional;
- * - U: User Option;
- * https://dicom.nema.org/medical/dicom/current/output/chtml/part03/chapter_A.html#sect_A.1.3
  *
  * @param {Node} node The content node.
  * @returns {Array} The list of IOD modules.
  */
 function parseIODModulesNode(node, partNode, name) {
-  const rows = parseTableNode(node, partNode, name);
-  const result = [];
-  for (const row of rows) {
-    // do not use Information Entities (IE) column if present
-    if (row.length === 4) {
-      result.push(row.slice(1));
-    } else {
-      result.push(row);
+  const values = parseTableNode(node, partNode, name);
+  const modules = [];
+  let module = null;
+  for (const value of values) {
+    module = iodModulePropertiesToObject(value);
+    if (module) {
+      modules.push(module);
     }
   }
-  return result;
+  return modules;
 }
 
 /**
  * Get modules from an IOD list.
  *
- * @param {array} list The IOD module list.
+ * @param {Array} list The IOD module list.
  * @param {Node} partNode The main part node.
  * @returns {object} The IOD object with the module content.
  */
 function parseModulesFromIodList(list, partNode) {
   const result = {};
   for (const item of list) {
-    const name = item[0][0];
+    const moduleName = item.module;
     // get the module from the referenced section
-    const xmlid = getLinkend(item[1][0]);
+    const xmlid = getLinkend(item.reference);
     const sectNode = partNode.querySelector(getSelector(xmlid));
     for (const node of sectNode.childNodes) {
       // stop at first table
       if (node.nodeName === 'table') {
-        result[name] = objectifyModules(parseModuleAttributesNode(
-          node, partNode, name + ' Module Attributes'
-        ));
+        const properties = parseModuleAttributesNode(
+          node, partNode, moduleName + ' Module Attributes'
+        );
+        result[moduleName] = [];
+        for (const props of properties) {
+          result[moduleName].push(modulePropertiesToObject(props));
+        }
         break;
       }
     }
@@ -519,11 +517,6 @@ let macros = {};
 
 /**
  * Parse a Information Entities (IE) modules DICOM standard XML node.
- * Type property:
- * - 1: Required; 1C: Type 1 with condition;
- * - 2: Required, Empty if Unknown; 2C: Type 2 with condition;
- * - 3: Optional
- * https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_7.4.html
  *
  * @param {Node} node The content node.
  * @returns {Array} The list of ....
@@ -700,6 +693,90 @@ function uidPropertiesToObject(properties, uidType) {
   return uid;
 }
 
+
+/**
+ * Objectify IOD modules properties.
+ *
+ * @param {Array} properties The IOD module properties.
+ * @returns {Object} A IOD module object.
+ */
+function iodModulePropertiesToObject(properties) {
+  // check length (then only use the first element of each item)
+  if (properties.length !== 3 && properties.length !== 4) {
+    throw new Error('Not the expected IOD module values size: ' +
+      properties.length);
+  }
+  // possible Information Entities (IE) extra first column
+  let startCol = 0;
+  if (properties.length === 4) {
+    startCol = 1;
+  }
+  let iodModule = {
+    module: properties[startCol][0],
+    reference: properties[startCol + 1][0],
+    usage: properties[startCol + 2][0]
+  };
+
+  // Usage property:
+  // - M: Mandatory;
+  // - C: Conditional;
+  // - U: User Option;
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part03/chapter_A.html#sect_A.1.3
+  if (iodModule.usage !== 'M' && iodModule.usage !== 'C' &&
+    iodModule.usage !== 'U') {
+    console.warn('Unexpected IOD module usage: ' + iodModule.usage);
+  }
+
+  return iodModule;
+}
+
+/**
+ * Objectify modules properties.
+ *
+ * @param {Array} properties The module properties.
+ * @returns {Object} A module object.
+ */
+function modulePropertiesToObject(properties) {
+  // check length (then only use the first element of each item)
+  if (properties.length !== 4 && properties.length !== 5) {
+    throw new Error('Not the expected module values size: ' +
+      properties.length);
+  }
+  let module = {
+    name: properties[0][0],
+    tag: properties[1][0],
+    type: properties[2][0],
+    desc: properties[3][0]
+  };
+
+  // Type property:
+  // - 1: Required; 1C: Type 1 with condition;
+  // - 2: Required, Empty if Unknown; 2C: Type 2 with condition;
+  // - 3: Optional
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_7.4.html
+  if (module.type !== '1' && module.type !== '1C' &&
+    module.type !== '2' && module.type !== '2C' &&
+    module.type !== '3') {
+    console.warn('Unexpected module type: ' + module.type);
+  }
+
+  // looks like: 'enum=ITEM0,ITEM1'
+  const enumList = properties[3].find(item => item.startsWith('enum='));
+  if (enumList) {
+    module.enum = enumList.substring(5);
+  }
+  // include
+  if (properties.length === 5) {
+    module.items = [];
+    const subProperties = properties[4];
+    for (const subProps of subProperties) {
+      module.items.push(modulePropertiesToObject(subProps));
+    }
+  }
+
+  return module;
+}
+
 /**
  * Adapt tags:
  * - replace 'x' in groups and elements
@@ -863,34 +940,4 @@ function stringifyTags(tags) {
   text += '}\n';
 
   return text;
-}
-
-/**
- * Objectify a modules array.
- *
- * @param {Array} modules The modules array.
- * @returns {Array} An array of module objects.
- */
-function objectifyModules(modules) {
-  let result = [];
-  for (const module of modules) {
-    let obj = {
-      name: module[0][0],
-      tag: module[1][0],
-      type: module[2][0],
-      desc: module[3][0]
-    };
-    // looks like: 'enum=ITEM0,ITEM1'
-    const enumList = module[3].find(item => item.startsWith('enum='));
-    if (enumList) {
-      obj.enum = enumList.substring(5);
-    }
-    // include
-    if (module.length === 5) {
-      obj.items = objectifyModules(module[4]);
-    }
-    result.push(obj);
-  }
-
-  return result;
 }
