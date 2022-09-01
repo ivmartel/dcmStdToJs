@@ -538,6 +538,15 @@ function parseModuleAttributesNode(node, partNode, name) {
   let startSq0 = false;
   let startSq1 = false;
   for (const row of rows) {
+    if (row.length === 0) {
+      const nodeCaptions = node.getElementsByTagName('caption');
+      if (nodeCaptions && nodeCaptions.length !== 0) {
+        console.warn('Empty module row in: ', nodeCaptions[0].innerHTML);
+      } else {
+        console.warn('Empty module row');
+      }
+      continue;
+    }
     let attribute;
     const attributeName = cleanString(row[0][0]);
     let includeCase = false;
