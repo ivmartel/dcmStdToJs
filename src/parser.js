@@ -100,7 +100,7 @@ export class DicomXMLParser {
         name: 'Transfer syntax UIDs',
         origin: origin,
         raw: uids,
-        data: stringifyUids(adaptUidsForDwv(uids))
+        data: JSON.stringify(adaptUidsForDwv(uids), null, '  ')
       };
 
       // SOPs
@@ -113,7 +113,7 @@ export class DicomXMLParser {
         name: 'SOP class and instance UIDs',
         origin: origin,
         raw: sops,
-        data: stringifyUids(adaptUidsForDwv(sops))
+        data: JSON.stringify(adaptUidsForDwv(sops), null, '  ')
       };
 
       result = [tagsResults, uidsResults, sopsResults];
@@ -448,16 +448,16 @@ function parseTagsTableNode(tableNode, partNode, expectedCaption) {
  * @param {Node} tableNode A DOM table node.
  * @param {String} expectedCaption The expected node caption.
  * @param {String} uidType The UID type.
- * @returns {Array} The list of transfer syntax UID objects.
+ * @returns {object} The list of transfer syntax UIDs.
  */
 function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
-  const uids = [];
+  const uids = {};
   let uid = null;
   for (const value of values) {
     uid = uidPropertiesToObject(value, uidType);
     if (uid) {
-      uids.push(uid);
+      uids[uid.value] = uid.name;
     }
   }
   return uids;
@@ -472,7 +472,7 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
  * https://dicom.nema.org/medical/dicom/current/output/chtml/part03/chapter_A.html#sect_A.1.3
  *
  * @param {Node} node The content node.
- * @returns {Array} The list of ....
+ * @returns {Array} The list of IOD modules.
  */
 function parseIODModulesNode(node, partNode, name) {
   const rows = parseTableNode(node, partNode, name);
@@ -789,29 +789,26 @@ function adaptTagsForDwv(inputTags) {
  * Adapt UIDs:
  * - replace '&amp;' in name with '&'
  * - remove comments in name: string after ':'
- * @param {Array} inputUids An array of UIDs.
- * @returns {Array} The adapted UIDs as a new array.
+ * @param {object} inputUids An list of UIDs.
+ * @returns {object} The adapted UIDs as a new list.
  */
 function adaptUidsForDwv(inputUids) {
-  // clone input
-  const uids = inputUids.slice();
-
-  for (let i = 0; i < uids.length; ++i) {
-    const uid = uids[i];
-    let name = uid.name;
+  const keys = Object.keys(inputUids);
+  for (const key of keys) {
+    let name = inputUids[key];
     // replace '&amp'
     if (name.includes('&amp;')) {
       name = name.replace('&amp;', '&');
-      uids[i].name = name;
+      inputUids[key] = name;
     }
     // remove comment
     if (name.includes(':')) {
       const pos = name.indexOf(':');
-      uids[i].name = name.substring(0, pos);
+      inputUids[key] = name.substring(0, pos);
     }
   }
 
-  return uids;
+  return inputUids;
 }
 
 /**
@@ -862,41 +859,6 @@ function stringifyTags(tags) {
 
   // last group line
   text += '\n' + tab + '}\n';
-  // last line
-  text += '}\n';
-
-  return text;
-}
-
-/**
- * Stringify a UID array.
- *
- * @param {Array} uids The UID array.
- * @returns {String} A stringified version of the input array.
- */
-function stringifyUids(uids) {
-  // check uids
-  if (!uids) {
-    throw new Error('No uids.');
-  }
-  if (uids.length === 0) {
-    throw new Error('Empty uids.');
-  }
-
-  // tabulation
-  const tab = '  ';
-  const quote = '\'';
-  // result text
-  let text = '{\n';
-
-  for (let i = 0; i < uids.length; ++i) {
-    const uid = uids[i];
-    // uid
-    text += tab +
-      quote + uid.value + quote + ': ' +
-      quote + uid.name + quote + ',\n';
-  }
-
   // last line
   text += '}\n';
 
