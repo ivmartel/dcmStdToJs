@@ -147,10 +147,16 @@ function appendResult(name, content) {
 
   if (typeof content.name !== 'undefined') {
     const para = document.createElement('p');
+    let numberOfItems;
+    if (Array.isArray(content.raw)) {
+      numberOfItems = content.raw.length;
+    } else {
+      numberOfItems = Object.keys(content.raw).length;
+    }
     para.appendChild(document.createTextNode(
       content.name +
       ' (' + content.origin +
-      ', ' + content.raw.length + ' items) '
+      ', ' + numberOfItems + ' items) '
     ));
 
     const link = document.createElement('a');
