@@ -492,6 +492,7 @@ function parseIODModulesNode(node, partNode, name) {
 function parseModulesFromIodList(list, partNode) {
   const result = {};
   for (const item of list) {
+    // TODO include usage and condition
     const moduleName = item.module;
     // get the module from the referenced section
     const xmlid = getLinkend(item.reference);
@@ -716,6 +717,12 @@ function iodModulePropertiesToObject(properties) {
     reference: properties[startCol + 1][0],
     usage: properties[startCol + 2][0]
   };
+
+  // get condition from usage
+  if (iodModule.usage.startsWith('C - Required')) {
+    iodModule.condition = iodModule.usage.substring(4);
+    iodModule.usage = 'C';
+  }
 
   // Usage property:
   // - M: Mandatory;
