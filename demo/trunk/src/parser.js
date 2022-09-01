@@ -29,7 +29,7 @@ export class DicomXMLParser {
     if (label === 'PS3.5') {
       // 32-bit VL VRs
       const vrs = parseVrVl32bits(
-        partNode.querySelector('table[label=\'7.1-1\']'),
+        partNode.querySelector(getSelector('table_7.1-1')),
         'Data Element with Explicit VR');
       result = {
         name: '32-bit VL VRs',
@@ -41,17 +41,17 @@ export class DicomXMLParser {
       let tags36 = [];
       // 0002: DICOM File Meta Elements
       tags36 = tags36.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'7-1\']'),
+        partNode.querySelector(getSelector('table_7-1')),
         partNode,
         'Registry of DICOM File Meta Elements'));
       // 0004: DICOM Directory Structuring Elements
       tags36 = tags36.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'8-1\']'),
+        partNode.querySelector(getSelector('table_8-1')),
         partNode,
         'Registry of DICOM Directory Structuring Elements'));
       // DICOM Data Elements
       tags36 = tags36.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'6-1\']'),
+        partNode.querySelector(getSelector('table_6-1')),
         partNode,
         'Registry of DICOM Data Elements'));
 
@@ -64,7 +64,7 @@ export class DicomXMLParser {
 
       // transfer syntax
       const uids = parseUidTableNode(
-        partNode.querySelector('table[label=\'A-1\']'),
+        partNode.querySelector(getSelector('table_A-1')),
         partNode,
         'UID Values',
         'Transfer Syntax');
@@ -77,7 +77,7 @@ export class DicomXMLParser {
 
       // SOPs
       const sops = parseUidTableNode(
-        partNode.querySelector('table[label=\'A-1\']'),
+        partNode.querySelector(getSelector('table_A-1')),
         partNode,
         'UID Values',
         'SOP');
@@ -93,12 +93,12 @@ export class DicomXMLParser {
       let tags37 = [];
       // 0000: command
       tags37 = tags37.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'E.1-1\']'),
+        partNode.querySelector(getSelector('table_E.1-1')),
         partNode,
         'Command Fields'));
       // 0000: command (retired)
       tags37 = tags37.concat(parseTagsTableNode(
-        partNode.querySelector('table[label=\'E.2-1\']'),
+        partNode.querySelector(getSelector('table_E.2-1')),
         partNode,
         'Retired Command Fields'));
 
@@ -114,6 +114,44 @@ export class DicomXMLParser {
 
     return result;
   }
+}
+
+/**
+ * Get a selector for an element with the input xml:id.
+ * Looking for:
+ * - <table label="l"> when the id starts with 'table_'
+ * - <section label="l"> when the id starts with 'sect_'
+ *
+ * @param {string} xmlid The id to look for.
+ * @returns {string} The selector.
+ */
+function getSelector(xmlid) {
+  let prefix = '';
+  if (xmlid.startsWith('table_')) {
+    prefix = 'table[label=\'' + xmlid.substring(6);
+  } else if (xmlid.startsWith('sect_')) {
+    prefix = 'section[label=\'' + xmlid.substring(5);
+  } else {
+    throw new Error('Unknown xml:id format.');
+  }
+  return prefix + '\']';
+}
+
+/**
+ * Get the 'linkend' value (an xml:id) of an input string.
+ * Looking for: <xref linkend="sect_C.1-7">
+ *
+ * @param {string} str
+ * @returns {string} The xml:id.
+ */
+function getLinkend(str) {
+  const regex = /linkend="(.+?)"/g;
+  const matches = [...str.matchAll(regex)];
+  // return first result
+  if (matches.length === 0 || matches[0].length < 2) {
+    throw new Error('Cannot find linkend value in: ' + str);
+  }
+  return matches[0][1];
 }
 
 /**
@@ -171,7 +209,7 @@ function parseTableNode(tableNode, partNode, expectedCaption) {
   const properties = [];
   const nodes = tableNode.querySelectorAll('tbody > tr');
   if (nodes) {
-    for (let node of nodes) {
+    for (const node of nodes) {
       properties.push(parseTrNode(node, partNode));
     }
   }
@@ -221,7 +259,7 @@ function parseTrNode(trNode, partNode) {
   const properties = [];
   const nodes = trNode.querySelectorAll('td');
   if (nodes) {
-    for (let node of nodes) {
+    for (const node of nodes) {
       properties.push(parseTdNode(node, partNode));
     }
   }
@@ -239,10 +277,14 @@ function parseTdNode(tdNode, partNode) {
   const properties = [];
   const nodes = tdNode.childNodes;
   if (nodes) {
-    for (let node of nodes) {
+    for (const node of nodes) {
       // type 1 (elements) to avoid #text between elements
       if (node.nodeType === 1) {
-        properties.push(parseContentNode(node, partNode));
+        if (node.nodeName === 'variablelist') {
+          properties.push(parseVariableListNode(node));
+        } else {
+          properties.push(parseContentNode(node, partNode));
+        }
       }
     }
   }
@@ -261,10 +303,15 @@ function parseContentNode(paraNode, partNode) {
   let content = '';
   const nodes = paraNode.childNodes;
   if (nodes) {
-    for (let node of nodes) {
+    for (const node of nodes) {
       if (node.nodeType === 1) {
         // type 1: element
-        content += parseContentNode(node, partNode);
+        if (node.nodeName === 'xref') {
+          // just keep linkend for xref
+          content += 'linkend="' + node.attributes.linkend.value + '"';
+        } else {
+          content += parseContentNode(node, partNode);
+        }
       } else if (node.nodeType === 3) {
         // type 3: text
         content += node.textContent;
@@ -275,8 +322,59 @@ function parseContentNode(paraNode, partNode) {
   }
   // clean
   content = cleanString(content);
+
+  // link to section with defined terms
+  // (for ex in module attributes description)
+  if (content.startsWith('See linkend=') &&
+    content.endsWith('for Defined Terms.')) {
+    let foundTermsList = false;
+    const xmlid = getLinkend(content);
+    if (xmlid.startsWith('sect_')) {
+      const subSection = partNode.querySelector(getSelector(xmlid));
+      const nodes = subSection.childNodes;
+      if (nodes) {
+        for (const node of nodes) {
+          if (node.nodeName === 'variablelist') {
+            foundTermsList = true;
+            content = parseVariableListNode(node);
+          }
+        }
+      }
+    }
+    if (!foundTermsList) {
+      console.warn('Did not find terms list with: ' + content);
+    }
+  }
+
   // return
   return content;
+}
+
+/**
+ * Parse a DICOM standard XML VariableList node
+ *
+ * @param {Node} listNode A DOM list node.
+ * @return {string} The list values.
+ */
+function parseVariableListNode(listNode) {
+  let content = 'enum=';
+  const listChilds = listNode.childNodes;
+  if (listChilds) {
+    for (const node of listChilds) {
+      if (node.nodeName === 'varlistentry') {
+        const entries = node.childNodes;
+        if (entries) {
+          for (const entryNode of entries) {
+            if (entryNode.nodeName === 'term') {
+              content += cleanString(entryNode.textContent) + ',';
+            }
+          }
+        }
+      }
+    }
+  }
+  // remove last comma
+  return content.substring(0, content.length - 1);
 }
 
 /**
@@ -299,8 +397,8 @@ function parseTagsTableNode(tableNode, partNode, expectedCaption) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
   const tags = [];
   let tag = null;
-  for (let i = 0; i < values.length; ++i) {
-    tag = tagPropertiesToObject(values[i]);
+  for (const value of values) {
+    tag = tagPropertiesToObject(value);
     if (tag) {
       tags.push(tag);
     }
@@ -319,8 +417,8 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
   const uids = [];
   let uid = null;
-  for (let i = 0; i < values.length; ++i) {
-    uid = uidPropertiesToObject(values[i], uidType);
+  for (const value of values) {
+    uid = uidPropertiesToObject(value, uidType);
     if (uid) {
       uids.push(uid);
     }
@@ -367,7 +465,7 @@ function tagPropertiesToObject(properties) {
   }
   // split (group,element)
   const geSplit = properties[0][0].split(',');
-  const group = '0x' + geSplit[0].substring(1, 4).toString();
+  const group = '0x' + geSplit[0].substring(1, 5).toString();
   const element = '0x' + geSplit[1].substring(0, 4).toString();
   // return
   return {
@@ -444,8 +542,7 @@ function adaptTagsForDwv(inputTags) {
   }
 
   // add GenericGroupLength to groups
-  for (let g = 0; g < groups.length; ++g) {
-    const group = groups[g];
+  for (const group of groups) {
     if (group !== '0x0000' && group !== '0x0002') {
       tags.push({
         group: group,
