@@ -169,7 +169,7 @@ function getSelector(xmlid) {
  * Get the 'linkend' value (an xml:id) of an input string.
  * Looking for: <xref linkend="sect_C.1-7">
  *
- * @param {string} str
+ * @param {string} str The input string.
  * @returns {string} The xml:id.
  */
 function getLinkend(str) {
@@ -528,7 +528,6 @@ function parseModuleAttributesNode(node, partNode, name) {
   // expecting macro includes as: 'Include <xref linkend="table_10-18"
   //   xrefstyle="select: label quotedtitle"/>'
   const macroStart = 'Include linkend=';
-  const xrefLinkRegex = /linkend="(.+?)"/g;
 
   const rows = parseTableNode(node, partNode, name);
   const result = [];
@@ -545,7 +544,7 @@ function parseModuleAttributesNode(node, partNode, name) {
     } else if (attributeName.includes(macroStart)) {
       // include case
       includeCase = true;
-      const xmlid = [...attributeName.matchAll(xrefLinkRegex)][0][1];
+      const xmlid = getLinkend(attributeName);
       if (xmlid.startsWith('table_')) {
         // store macro if not done yet
         if (!macros[xmlid]) {
