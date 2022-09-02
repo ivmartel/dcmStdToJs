@@ -386,8 +386,9 @@ function parseContentNode(paraNode, partNode) {
 
   // link to section with defined terms
   // (for ex in module attributes description)
-  if (content.startsWith('See linkend=') &&
-    content.endsWith('for Defined Terms.')) {
+  const regex = /See linkend=.+ for Defined Terms\./g;
+  const match = content.match(regex);
+  if (match && match.length === 1) {
     let foundTermsList = false;
     const xmlid = getLinkend(content);
     if (xmlid.startsWith('sect_')) {
@@ -398,7 +399,7 @@ function parseContentNode(paraNode, partNode) {
           if (node.nodeName === 'variablelist') {
             if (!foundTermsList) {
               foundTermsList = true;
-              content = parseVariableListNode(node);
+              content = content.replace(match[0], parseVariableListNode(node));
             } else {
               console.warn('Multiple variable list for ' + xmlid);
             }
@@ -438,8 +439,8 @@ function parseVariableListNode(listNode) {
       }
     }
   }
-  // remove last comma
-  return content.substring(0, content.length - 1);
+  // replace last comma with semicolon
+  return content.replace(/.$/, ';');
 }
 
 /**
@@ -801,10 +802,19 @@ function modulePropertiesToObject(properties) {
     console.warn('Unexpected module type: ' + module.type);
   }
 
-  // looks like: 'enum=ITEM0,ITEM1'
-  const enumList = properties[3].find(item => item.startsWith('enum='));
-  if (enumList) {
-    module.enum = enumList.substring(5);
+  // looks like: 'enum=ITEM0,ITEM1;'
+  for (let i = 0; i < properties[3].length; ++i) {
+    const prop = properties[3][i];
+    const start = prop.indexOf('enum=');
+    if (start !== -1) {
+      const end = prop.indexOf(';');
+      if (i === 0) {
+        const desc = prop.substring(0, start) +
+          prop.substring(end, prop.length - 1);
+        module.desc = desc.trim();
+      }
+      module.enum = prop.substring(start + 5, end);
+    }
   }
   // include
   if (properties.length === 5) {
