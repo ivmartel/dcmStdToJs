@@ -176,7 +176,7 @@ function getLinkend(str) {
   const regex = /linkend="(.+?)"/g;
   const matches = [...str.matchAll(regex)];
   // return first result
-  if (matches.length === 0 || matches[0].length < 2) {
+  if (matches.length === 0 || matches[0].length !== 2) {
     throw new Error('Cannot find linkend value in: ' + str);
   }
   return matches[0][1];
