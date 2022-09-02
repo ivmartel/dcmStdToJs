@@ -176,10 +176,38 @@ function getLinkend(str) {
   const regex = /linkend="(.+?)"/g;
   const matches = [...str.matchAll(regex)];
   // return first result
-  if (matches.length === 0 || matches[0].length < 2) {
+  if (matches.length === 0 || matches[0].length !== 2) {
     throw new Error('Cannot find linkend value in: ' + str);
   }
   return matches[0][1];
+}
+
+/**
+ * Extract condition arguments from a string.
+ *
+ * @param {string} str The string to extract the condition from.
+ * @returns {Array|null} The array of matches or null.
+ */
+function extractCondition(str) {
+  let result = null;
+  // 'Required if Context Identifier (0008,010F) is present.'
+  if (str.includes('Required if')) {
+    const regex = /Required if ([\w\s]+) (\(\d{4},\d{4}\)) ([\w\s]+)/g;
+    const matches = [...str.matchAll(regex)];
+    if (matches.length === 0 || matches[0].length !== 4) {
+      console.log('Cannot find condition values in: ' + str);
+    } else {
+      if (matches[0][3] !== 'is present' &&
+        matches[0][3] !== 'is not present' &&
+        !matches[0][3].startsWith('has a value') &&
+        !matches[0][3].startsWith('is')) {
+        console.log('Unknown tag condition: ' + matches[0]);
+      } else {
+        result = matches[0];
+      }
+    }
+  }
+  return result;
 }
 
 /**
@@ -755,6 +783,12 @@ function modulePropertiesToObject(properties) {
     type: properties[2][0],
     desc: properties[3][0]
   };
+
+  // extract condition from description
+  const condition = extractCondition(module.desc);
+  if (condition) {
+    module.condition = condition;
+  }
 
   // Type property:
   // - 1: Required; 1C: Type 1 with condition;
