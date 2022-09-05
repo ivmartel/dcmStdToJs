@@ -808,12 +808,14 @@ function modulePropertiesToObject(properties) {
     const start = prop.indexOf('enum=');
     if (start !== -1) {
       const end = prop.indexOf(';');
+      // keep description part
       if (i === 0) {
         const desc = prop.substring(0, start) +
           prop.substring(end, prop.length - 1);
         module.desc = desc.trim();
       }
-      module.enum = prop.substring(start + 5, end);
+      // store enum as array
+      module.enum = prop.substring(start + 5, end).split(',');
     }
   }
   // include
