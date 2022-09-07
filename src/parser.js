@@ -35,23 +35,41 @@ export class DicomXMLParser {
         // {name: 'NM Image', label: 'table_A.5-1'},
         // {name: 'US Image', label: 'table_A.6-1'},
         // {name: 'PET Image', label: 'table_A.21.3-1'},
-        // {name: 'Segmentation', label: 'table_A.51-1'}
+        // {
+        //   name: 'Segmentation',
+        //   label: 'table_A.51-1',
+        //   fgLabel: 'table_A.51-2'
+        // }
       ];
 
       for (const iod of iodList) {
-        const iods = parseIODModulesNode(
+        let fgModulesProperties = null;
+        // functional group modules
+        if (typeof iod.fgLabel !== 'undefined') {
+          const fgModulesDefs = parseModuleListNode(
+            partNode.querySelector(getSelector(iod.fgLabel)),
+            partNode,
+            iod.name + ' Functional Group Macros'
+          );
+          fgModulesProperties =
+            parseModulesFromList(fgModulesDefs, partNode);
+        }
+        // IOD modules
+        const iodModulesDefs = parseModuleListNode(
           partNode.querySelector(getSelector(iod.label)),
           partNode,
           iod.name + ' IOD Modules'
         );
+        const modulesProperties = parseModulesFromList(
+          iodModulesDefs, partNode, fgModulesProperties);
 
-        const iodModules = parseModulesFromIodList(iods, partNode);
+        const modules = modulePropertiesListToObject(modulesProperties);
 
         result.push({
           name: iod.name + ' IOD Modules',
           origin: origin,
-          raw: iodModules,
-          data: JSON.stringify(iodModules, null, '  ')
+          raw: modules,
+          data: JSON.stringify(modules, null, '  ')
         });
       }
     } else if (label === 'PS3.5') {
@@ -493,17 +511,18 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
 }
 
 /**
- * Parse a Information Entities (IE) modules DICOM standard XML node.
+ * Parse a module list DICOM standard XML node:
+ *   can be an IOD modules list or a functional group macros.
  *
  * @param {Node} node The content node.
  * @returns {Array} The list of IOD modules.
  */
-function parseIODModulesNode(node, partNode, name) {
+function parseModuleListNode(node, partNode, name) {
   const values = parseTableNode(node, partNode, name);
   const modules = [];
   let module = null;
   for (const value of values) {
-    module = iodModulePropertiesToObject(value);
+    module = moduleDefinitionPropertiesToObject(value);
     if (module) {
       modules.push(module);
     }
@@ -512,13 +531,15 @@ function parseIODModulesNode(node, partNode, name) {
 }
 
 /**
- * Get modules from an IOD list.
+ * Get modules from a modules definition list.
  *
  * @param {Array} list The IOD module list.
  * @param {Node} partNode The main part node.
- * @returns {object} The IOD object with the module content.
+ * @param {object} fgModulesProperties Optional functional group
+ *   modules properties, undefined to parse a functional group.
+ * @returns {Array} The modules array.
  */
-function parseModulesFromIodList(list, partNode) {
+function parseModulesFromList(list, partNode, fgModulesProperties) {
   const result = {};
   for (const item of list) {
     // TODO include usage and condition
@@ -529,13 +550,15 @@ function parseModulesFromIodList(list, partNode) {
     for (const node of sectNode.childNodes) {
       // stop at first table
       if (node.nodeName === 'table') {
-        const properties = parseModuleAttributesNode(
-          node, partNode, moduleName + ' Module Attributes'
-        );
-        result[moduleName] = [];
-        for (const props of properties) {
-          result[moduleName].push(modulePropertiesToObject(props));
+        let name = moduleName;
+        if (typeof fgModulesProperties === 'undefined') {
+          name += ' Macro';
+        } else {
+          name += ' Module';
         }
+        name += ' Attributes';
+        result[moduleName] =
+          parseModuleAttributesNode(node, partNode, name, fgModulesProperties);
         break;
       }
     }
@@ -551,10 +574,11 @@ let macros = {};
  * @param {Node} node The content node.
  * @returns {Array} The list of ....
  */
-function parseModuleAttributesNode(node, partNode, name) {
+function parseModuleAttributesNode(node, partNode, name, fgModules) {
   // expecting macro includes as: 'Include <xref linkend="table_10-18"
   //   xrefstyle="select: label quotedtitle"/>'
-  const macroStart = 'Include linkend=';
+  const includeMacro = 'Include linkend=';
+  const includeFG = 'Include one or more Functional Group Macros';
 
   const rows = parseTableNode(node, partNode, name);
   const result = [];
@@ -577,8 +601,8 @@ function parseModuleAttributesNode(node, partNode, name) {
     if (row.length === 4) {
       // default: Attribute Name, Tag, Type, Attribute Description
       attribute = [row];
-    } else if (attributeName.includes(macroStart)) {
-      // include case
+    } else if (attributeName.includes(includeMacro)) {
+      // include module macro
       includeCase = true;
       const xmlid = getLinkend(attributeName);
       if (xmlid.startsWith('table_')) {
@@ -589,6 +613,14 @@ function parseModuleAttributesNode(node, partNode, name) {
             parseModuleAttributesNode(subTable, partNode, undefined);
         }
         attribute = macros[xmlid];
+      }
+    } else if (attributeName.includes(includeFG)) {
+      // include functional group macro
+      includeCase = true;
+      attribute = [];
+      const keys = Object.keys(fgModules);
+      for (let key of keys) {
+        attribute = attribute.concat(fgModules[key]);
       }
     } else {
       // avoid these rows
@@ -728,9 +760,9 @@ function uidPropertiesToObject(properties, uidType) {
  * Objectify IOD modules properties.
  *
  * @param {Array} properties The IOD module properties.
- * @returns {Object} A IOD module object.
+ * @returns {object} A IOD module object.
  */
-function iodModulePropertiesToObject(properties) {
+function moduleDefinitionPropertiesToObject(properties) {
   // check length (then only use the first element of each item)
   if (properties.length !== 3 && properties.length !== 4) {
     throw new Error('Not the expected IOD module values size: ' +
@@ -741,16 +773,16 @@ function iodModulePropertiesToObject(properties) {
   if (properties.length === 4) {
     startCol = 1;
   }
-  let iodModule = {
+  let moduleDef = {
     module: properties[startCol][0],
     reference: properties[startCol + 1][0],
     usage: properties[startCol + 2][0]
   };
 
   // get condition from usage
-  if (iodModule.usage.startsWith('C - Required')) {
-    iodModule.condition = iodModule.usage.substring(4);
-    iodModule.usage = 'C';
+  if (moduleDef.usage.startsWith('C - Required')) {
+    moduleDef.condition = moduleDef.usage.substring(4);
+    moduleDef.usage = 'C';
   }
 
   // Usage property:
@@ -758,19 +790,38 @@ function iodModulePropertiesToObject(properties) {
   // - C: Conditional;
   // - U: User Option;
   // https://dicom.nema.org/medical/dicom/current/output/chtml/part03/chapter_A.html#sect_A.1.3
-  if (iodModule.usage !== 'M' && iodModule.usage !== 'C' &&
-    iodModule.usage !== 'U') {
-    console.warn('Unexpected IOD module usage: ' + iodModule.usage);
+  if (moduleDef.usage !== 'M' && moduleDef.usage !== 'C' &&
+    moduleDef.usage !== 'U') {
+    console.warn('Unexpected IOD module usage: ' + moduleDef.usage);
   }
 
-  return iodModule;
+  return moduleDef;
 }
 
 /**
  * Objectify modules properties.
  *
  * @param {Array} properties The module properties.
- * @returns {Object} A module object.
+ * @returns {object} A module object.
+ */
+function modulePropertiesListToObject(properties) {
+  const keys = Object.keys(properties);
+  const result = {};
+  for (const key of keys) {
+    const modules = [];
+    for (const mod of properties[key]) {
+      modules.push(modulePropertiesToObject(mod));
+    }
+    result[key] = modules;
+  }
+  return result;
+}
+
+/**
+ * Objectify modules properties.
+ *
+ * @param {Array} properties The module properties.
+ * @returns {object} A module object.
  */
 function modulePropertiesToObject(properties) {
   // check length (then only use the first element of each item)
