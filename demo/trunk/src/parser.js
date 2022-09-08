@@ -43,13 +43,15 @@ export class DicomXMLParser {
       ];
 
       for (const iod of iodList) {
+        const usageRegex = /M|C/g;
         let fgModulesProperties = null;
         // functional group modules
         if (typeof iod.fgLabel !== 'undefined') {
           const fgModulesDefs = parseModuleListNode(
             partNode.querySelector(getSelector(iod.fgLabel)),
             partNode,
-            iod.name + ' Functional Group Macros'
+            iod.name + ' Functional Group Macros',
+            usageRegex
           );
           fgModulesProperties =
             parseModulesFromList(fgModulesDefs, partNode);
@@ -58,7 +60,8 @@ export class DicomXMLParser {
         const iodModulesDefs = parseModuleListNode(
           partNode.querySelector(getSelector(iod.label)),
           partNode,
-          iod.name + ' IOD Modules'
+          iod.name + ' IOD Modules',
+          usageRegex
         );
         const modulesProperties = parseModulesFromList(
           iodModulesDefs, partNode, fgModulesProperties);
@@ -560,14 +563,17 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
  *   can be an IOD modules list or a functional group macros.
  *
  * @param {Node} node The content node.
+ * @param {Node} partNode The main part node.
+ * @param {string} name The expected node caption.
+ * @param {string} usageRegex Optional usage selection regex.
  * @returns {Array} The list of IOD modules.
  */
-function parseModuleListNode(node, partNode, name) {
+function parseModuleListNode(node, partNode, name, usageRegex) {
   const values = parseTableNode(node, partNode, name);
   const modules = [];
   let module = null;
   for (const value of values) {
-    module = moduleDefinitionPropertiesToObject(value);
+    module = moduleDefinitionPropertiesToObject(value, usageRegex);
     if (module) {
       modules.push(module);
     }
@@ -805,9 +811,10 @@ function uidPropertiesToObject(properties, uidType) {
  * Objectify IOD modules properties.
  *
  * @param {Array} properties The IOD module properties.
+ * @param {string} usageRegex Optional usage selection regex.
  * @returns {object} A IOD module object.
  */
-function moduleDefinitionPropertiesToObject(properties) {
+function moduleDefinitionPropertiesToObject(properties, usageRegex) {
   // check length (then only use the first element of each item)
   if (properties.length !== 3 && properties.length !== 4) {
     throw new Error('Not the expected IOD module values size: ' +
@@ -838,6 +845,12 @@ function moduleDefinitionPropertiesToObject(properties) {
   if (moduleDef.usage !== 'M' && moduleDef.usage !== 'C' &&
     moduleDef.usage !== 'U') {
     console.warn('Unexpected IOD module usage: ' + moduleDef.usage);
+  }
+
+  // usage filter
+  if (typeof usageRegex !== 'undefined' &&
+    moduleDef.usage.match(usageRegex) === null) {
+    return null;
   }
 
   return moduleDef;
