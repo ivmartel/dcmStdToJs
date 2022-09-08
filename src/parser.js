@@ -63,7 +63,9 @@ export class DicomXMLParser {
         const modulesProperties = parseModulesFromList(
           iodModulesDefs, partNode, fgModulesProperties);
 
-        const modules = modulePropertiesListToObject(modulesProperties);
+        const typeRegex = /1|1C/g;
+        const modules = modulePropertiesListToObject(
+          modulesProperties, typeRegex);
 
         result.push({
           name: iod.name + ' IOD Modules',
@@ -802,17 +804,23 @@ function moduleDefinitionPropertiesToObject(properties) {
  * Objectify modules properties.
  *
  * @param {Array} properties The module properties.
+ * @param {string} typeRegex Optional type selection regex.
  * @returns {object} A module object.
  */
-function modulePropertiesListToObject(properties) {
+function modulePropertiesListToObject(properties, typeRegex) {
   const keys = Object.keys(properties);
   const result = {};
   for (const key of keys) {
     const modules = [];
     for (const mod of properties[key]) {
-      modules.push(modulePropertiesToObject(mod));
+      const module = modulePropertiesToObject(mod, typeRegex);
+      if (module) {
+        modules.push(module);
+      }
     }
-    result[key] = modules;
+    if (modules.length !== 0) {
+      result[key] = modules;
+    }
   }
   return result;
 }
@@ -821,9 +829,10 @@ function modulePropertiesListToObject(properties) {
  * Objectify modules properties.
  *
  * @param {Array} properties The module properties.
+ * @param {string} typeRegex Optional type selection regex.
  * @returns {object} A module object.
  */
-function modulePropertiesToObject(properties) {
+function modulePropertiesToObject(properties, typeRegex) {
   // check length (then only use the first element of each item)
   if (properties.length !== 4 && properties.length !== 5) {
     throw new Error('Not the expected module values size: ' +
@@ -853,6 +862,12 @@ function modulePropertiesToObject(properties) {
     console.warn('Unexpected module type: ' + module.type);
   }
 
+  // type filter
+  if (typeof typeRegex !== 'undefined' &&
+    module.type.match(typeRegex) === null) {
+    return null;
+  }
+
   // looks like: 'enum=ITEM0,ITEM1;'
   for (let i = 0; i < properties[3].length; ++i) {
     const prop = properties[3][i];
@@ -874,7 +889,10 @@ function modulePropertiesToObject(properties) {
     module.items = [];
     const subProperties = properties[4];
     for (const subProps of subProperties) {
-      module.items.push(modulePropertiesToObject(subProps));
+      const subModule = modulePropertiesToObject(subProps, typeRegex);
+      if (subModule) {
+        module.items.push(subModule);
+      }
     }
   }
 
