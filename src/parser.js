@@ -203,28 +203,71 @@ function getLinkend(str) {
 }
 
 /**
+ * Extract enum values from a string
+ * (created by parseVariableListNode).
+ *
+ * @param {string} str The string to extract the enum from.
+ * @returns {object} An object containing the input string ('str')
+ *   either in full or without the enum if found and
+ *   the enum ('enum') if found.
+ */
+function extractEnum(str) {
+  let result = {str: str};
+
+  // looks like: 'enum=ITEM0,ITEM1;'
+  const start = str.indexOf('enum=');
+  if (start !== -1) {
+    const end = str.indexOf(';');
+    if (end === -1) {
+      throw new Error('Badly formed enum');
+    }
+    // remove enum from input
+    const desc = str.substring(0, start) +
+      str.substring(end, str.length - 1);
+    result.str = desc.trim();
+    // store enum as array
+    result.enum = str.substring(start + 5, end).split(',');
+  }
+
+  return result;
+}
+
+/**
  * Extract condition arguments from a string.
  *
  * @param {string} str The string to extract the condition from.
- * @returns {Array|null} The array of matches or null.
+ * @returns {object} An object containing the input string ('str')
+ *   either in full or without the condition if found and
+ *   the condition ('condition') if found.
  */
 function extractCondition(str) {
-  let result = null;
-  // 'Required if Context Identifier (0008,010F) is present.'
-  if (str.includes('Required if')) {
-    const regex = /Required if ([\w\s]+) (\(\d{4},\d{4}\)) ([\w\s]+)/g;
+  let result = {str: str};
+
+  const reqIndex = str.indexOf('Required if');
+  if (reqIndex !== -1) {
+    let gotConditionMatch = false;
+    // 'Required if Context Identifier (0008,010F) is present.'
+    const regex = /Required if ([\w\s]+) (\([\dA-F]{4},[\dA-F]{4}\)) ([\w\s]+)\./g;
     const matches = [...str.matchAll(regex)];
-    if (matches.length === 0 || matches[0].length !== 4) {
-      console.log('Cannot find condition values in: ' + str);
-    } else {
-      if (matches[0][3] !== 'is present' &&
-        matches[0][3] !== 'is not present' &&
-        !matches[0][3].startsWith('has a value') &&
-        !matches[0][3].startsWith('is')) {
-        console.log('Unknown tag condition: ' + matches[0]);
-      } else {
-        result = matches[0];
+    if (matches.length !== 0 && matches[0].length === 4) {
+      if (matches[0][3] === 'is present' ||
+        matches[0][3] === 'is not present' ||
+        matches[0][3].startsWith('has a value') ||
+        matches[0][3].startsWith('is')) {
+        gotConditionMatch = true;
+        // condition without first match element
+        result.condition = matches[0].slice(1);
+        // remove condition from input
+        result.str = str.replace(matches[0][0], '');
       }
+    }
+
+    if (!gotConditionMatch) {
+      // condition
+      result.condition = str.substring(reqIndex);
+      // console.log('Cannot extract condition from: ', result.condition);
+      // remove condition from input
+      result.str = str.substring(0, reqIndex);
     }
   }
   return result;
@@ -460,7 +503,7 @@ function parseVariableListNode(listNode) {
     }
   }
   // replace last comma with semicolon
-  return content.replace(/.$/, ';');
+  return content.replace(/,$/, ';');
 }
 
 /**
@@ -841,15 +884,8 @@ function modulePropertiesToObject(properties, typeRegex) {
   let module = {
     name: properties[0][0],
     tag: properties[1][0],
-    type: properties[2][0],
-    desc: properties[3][0]
+    type: properties[2][0]
   };
-
-  // extract condition from description
-  const condition = extractCondition(module.desc);
-  if (condition) {
-    module.condition = condition;
-  }
 
   // Type property:
   // - 1: Required; 1C: Type 1 with condition;
@@ -868,22 +904,31 @@ function modulePropertiesToObject(properties, typeRegex) {
     return null;
   }
 
-  // looks like: 'enum=ITEM0,ITEM1;'
+  // description
+  let desc = '';
   for (let i = 0; i < properties[3].length; ++i) {
-    const prop = properties[3][i];
-    const start = prop.indexOf('enum=');
-    if (start !== -1) {
-      const end = prop.indexOf(';');
-      // keep description part
-      if (i === 0) {
-        const desc = prop.substring(0, start) +
-          prop.substring(end, prop.length - 1);
-        module.desc = desc.trim();
+    // extract enum
+    const extract0 = extractEnum(properties[3][i]);
+    if (typeof extract0.enum !== 'undefined') {
+      module.enum = extract0.enum;
+    }
+    if (extract0.str.length !== 0) {
+      // extract condition
+      const extract1 = extractCondition(extract0.str);
+      if (typeof extract1.condition !== 'undefined') {
+        module.condition = extract1.condition;
       }
-      // store enum as array
-      module.enum = prop.substring(start + 5, end).split(',');
+      // keep what's left
+      if (extract1.str.length !== 0) {
+        if (i !== 0) {
+          desc += ' ';
+        }
+        desc += extract1.str;
+      }
     }
   }
+  module.desc = desc;
+
   // include
   if (properties.length === 5) {
     module.items = [];
