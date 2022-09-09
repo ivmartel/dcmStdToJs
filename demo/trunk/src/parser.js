@@ -26,12 +26,31 @@ export class DicomXMLParser {
       throw new Error('No book label.');
     }
 
+    // get version
+    // 'DICOM PS3.5 2020a - ...'
+    const subtitle = book.querySelector('subtitle');
+    if (!subtitle) {
+      throw new Error('No book subtitle.');
+    }
+    const prefix = 'DICOM ' + label;
+    if (!subtitle.innerHTML.startsWith(prefix)) {
+      throw new Error('Missing DICOM standard version prefix.');
+    }
+    const endIndex = subtitle.innerHTML.indexOf('-');
+    const versionStr =
+      subtitle.innerHTML.substring(prefix.length, endIndex).trim();
+    const version = {
+      year: parseInt(versionStr.substring(0, 4), 10),
+      letter: versionStr.substring(4)
+    };
+
+
     let result = null;
 
     if (label === 'PS3.3') {
       result = parsePs33Node(partNode, origin);
     } else if (label === 'PS3.5') {
-      result = parsePs35Node(partNode, origin);
+      result = parsePs35Node(partNode, origin, version);
     } else if (label === 'PS3.6') {
       result = parsePs36Node(partNode, origin);
     } else if (label === 'PS3.7') {
@@ -112,20 +131,57 @@ function parsePs33Node(partNode, origin) {
  *
  * @param {Node} partNode The main DOM node.
  * @param {string} origin The origin of the node (optional).
+ * @param {object} version The version of the standard.
  * @return {object} A result object {name, origin, raw, data}.
  */
-function parsePs35Node(partNode, origin) {
+function parsePs35Node(partNode, origin, version) {
+  // VRs
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html#table_6.2-1
+  const vrs = parseVrTableNode(
+    partNode.querySelector(getSelector('table_6.2-1')),
+    'DICOM Value Representations');
+  const vrsResult = {
+    name: 'VRs',
+    origin: origin,
+    raw: vrs,
+    data: JSON.stringify(vrs)
+  };
+
   // 32-bit VL VRs
   // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/chapter_7.html#table_7.1-1
+  // table 7.1-1 caption:
+  // - before 2019e: 'Data Element with Explicit VR of OB, OD...'
+  // - >= 2019e: 'Data Element with Explicit VR other than as shown
+  //   in Table 7.1-2'
+  let isBefore2019e = true;
+  if (version.year > 2019 ||
+    (version.year === 2019 && version.letter >= 'e')) {
+    isBefore2019e = false;
+  }
+
+  let xmlid = 'table_7.1-2';
+  if (isBefore2019e) {
+    xmlid = 'table_7.1-1';
+  }
   const specialVrs = parseVrCaptionNode(
-    partNode.querySelector(getSelector('table_7.1-1')),
+    partNode.querySelector(getSelector(xmlid)),
     'Data Element with Explicit VR');
-  return {
+
+  let vrVl32s = specialVrs;
+  if (!isBefore2019e) {
+    vrVl32s = vrs.filter(function (item) {
+      return !specialVrs.includes(item);
+    });
+  }
+
+  const vrVl32Result = {
     name: '32-bit VL VRs',
     origin: origin,
-    raw: specialVrs,
-    data: specialVrs.toString()
+    raw: vrVl32s,
+    data: JSON.stringify(vrVl32s)
   };
+
+  return [vrsResult, vrVl32Result];
 }
 
 /**
@@ -628,6 +684,27 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
     }
   }
   return uids;
+}
+
+/**
+ * Parse a VR 32bit VL DICOM standard XML node.
+ * @param {Node} tableNode The content node.
+ * @param {Node} partNode The main DOM node.
+ * @param {string} expectedCaption The expected node caption root.
+ * @returns {Array} The list of VRs.
+ */
+function parseVrTableNode(tableNode, partNode, expectedCaption) {
+  const values = parseTableNode(tableNode, partNode, expectedCaption);
+  const vrs = [];
+  let vr = null;
+  for (const value of values) {
+    // just keep 'short' VR name
+    vr = value[0][0];
+    if (vr) {
+      vrs.push(vr);
+    }
+  }
+  return vrs;
 }
 
 /**
