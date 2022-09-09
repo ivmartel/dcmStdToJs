@@ -27,8 +27,9 @@ export class DicomXMLParser {
     let result = null;
 
     if (label === 'PS3.3') {
+      // modules
+      // https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html
       result = [];
-      // summary: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html
       const iodList = [
         {name: 'CT Image', label: 'table_A.3-1'},
         {name: 'MR Image', label: 'table_A.4-1'},
@@ -79,6 +80,7 @@ export class DicomXMLParser {
       }
     } else if (label === 'PS3.5') {
       // 32-bit VL VRs
+      // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/chapter_7.html#table_7.1-1
       const vrs = parseVrVl32bits(
         partNode.querySelector(getSelector('table_7.1-1')),
         'Data Element with Explicit VR');
@@ -91,16 +93,19 @@ export class DicomXMLParser {
     } else if (label === 'PS3.6') {
       let tags36 = [];
       // 0002: DICOM File Meta Elements
+      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_7.html#table_7-1
       tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector(getSelector('table_7-1')),
         partNode,
         'Registry of DICOM File Meta Elements'));
       // 0004: DICOM Directory Structuring Elements
+      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_8.html#table_8-1
       tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector(getSelector('table_8-1')),
         partNode,
         'Registry of DICOM Directory Structuring Elements'));
       // DICOM Data Elements
+      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_6.html#table_6-1
       tags36 = tags36.concat(parseTagsTableNode(
         partNode.querySelector(getSelector('table_6-1')),
         partNode,
@@ -114,6 +119,7 @@ export class DicomXMLParser {
       };
 
       // transfer syntax
+      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_A.html#table_A-1
       const uids = parseUidTableNode(
         partNode.querySelector(getSelector('table_A-1')),
         partNode,
@@ -127,6 +133,7 @@ export class DicomXMLParser {
       };
 
       // SOPs
+      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_A.html#table_A-1
       const sops = parseUidTableNode(
         partNode.querySelector(getSelector('table_A-1')),
         partNode,
@@ -143,11 +150,13 @@ export class DicomXMLParser {
     } else if (label === 'PS3.7') {
       let tags37 = [];
       // 0000: command
+      // https://dicom.nema.org/medical/dicom/current/output/chtml/part07/chapter_E.html#table_E.1-1
       tags37 = tags37.concat(parseTagsTableNode(
         partNode.querySelector(getSelector('table_E.1-1')),
         partNode,
         'Command Fields'));
       // 0000: command (retired)
+      // https://dicom.nema.org/medical/dicom/current/output/chtml/part07/sect_E.2.html#table_E.2-1
       tags37 = tags37.concat(parseTagsTableNode(
         partNode.querySelector(getSelector('table_E.2-1')),
         partNode,
