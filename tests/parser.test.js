@@ -49,11 +49,41 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     /No book label/,
     'no book label');
 
+  // #02 no book subtitle
+  const node02 = document.createElement('div');
+  const book02 = document.createElement('book');
+  book02.setAttribute('label', 'PS3.66');
+  node02.appendChild(book02);
+  const fbad02 = function () {
+    parser.parseNode(node02);
+  };
+  assert.raises(fbad02,
+    /No book subtitle/,
+    'no book subtitle');
+
+  // #03 no book subtitle
+  const node03 = document.createElement('div');
+  const book03 = document.createElement('book');
+  const sub03 = document.createElement('subtitle');
+  book03.setAttribute('label', 'PS3.66');
+  book03.appendChild(sub03);
+  node03.appendChild(book03);
+  const fbad03 = function () {
+    parser.parseNode(node03);
+  };
+  assert.raises(fbad03,
+    /Missing DICOM standard version prefix./,
+    'Missing DICOM standard version prefix.');
+
   // utility function
   function getBookNode(label) {
     const node = document.createElement('div');
     const book = document.createElement('book');
+    const subtitle = document.createElement('subtitle');
+    subtitle.appendChild(
+      document.createTextNode('DICOM ' + label + ' 2020a -'));
     book.setAttribute('label', label);
+    book.appendChild(subtitle);
     node.appendChild(book);
     return node;
   }
@@ -61,12 +91,12 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     return getBookNode('PS3.7');
   }
 
-  // #02 unknown book label
-  const node02 = getBookNode('PS3.66');
-  const fbad02 = function () {
-    parser.parseNode(node02);
+  // #03 unknown book label
+  const node04 = getBookNode('PS3.66');
+  const fbad04 = function () {
+    parser.parseNode(node04);
   };
-  assert.raises(fbad02,
+  assert.raises(fbad04,
     /Unknown book label/,
     'unknown book label');
 
