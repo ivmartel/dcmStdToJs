@@ -5,12 +5,14 @@ export class DicomXMLParser {
 
   /**
    * Parse a DICOM standard xml node.
-   * @param {Node} partNode A DOM node.
+   *
+   * @param {Node} partNode The main DOM node.
    * @param {string} origin The origin of the node (optional).
-   * @return {Object} An object containing:
-   * - raw: the raw tags
-   * - adapted: the adapted tags for dwv
-   * - asString: the adapted tags as string
+   * @return {object} An object containing:
+   * - name: a lael for the result
+   * - origin: the origin of the node
+   * - raw: the raw result
+   * - data: the adapted result as string
    */
   parseNode(partNode, origin) {
     // get book node
@@ -27,153 +29,201 @@ export class DicomXMLParser {
     let result = null;
 
     if (label === 'PS3.3') {
-      // modules
-      // https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html
-      result = [];
-      const iodList = [
-        {name: 'CT Image', label: 'table_A.3-1'},
-        {name: 'MR Image', label: 'table_A.4-1'},
-        // {name: 'NM Image', label: 'table_A.5-1'},
-        // {name: 'US Image', label: 'table_A.6-1'},
-        // {name: 'PET Image', label: 'table_A.21.3-1'},
-        // {
-        //   name: 'Segmentation',
-        //   label: 'table_A.51-1',
-        //   fgLabel: 'table_A.51-2'
-        // }
-      ];
-
-      for (const iod of iodList) {
-        const usageRegex = /M|C/g;
-        let fgModulesProperties = null;
-        // functional group modules
-        if (typeof iod.fgLabel !== 'undefined') {
-          const fgModulesDefs = parseModuleListNode(
-            partNode.querySelector(getSelector(iod.fgLabel)),
-            partNode,
-            iod.name + ' Functional Group Macros',
-            usageRegex
-          );
-          fgModulesProperties =
-            parseModulesFromList(fgModulesDefs, partNode);
-        }
-        // IOD modules
-        const iodModulesDefs = parseModuleListNode(
-          partNode.querySelector(getSelector(iod.label)),
-          partNode,
-          iod.name + ' IOD Modules',
-          usageRegex
-        );
-        const modulesProperties = parseModulesFromList(
-          iodModulesDefs, partNode, fgModulesProperties);
-
-        const typeRegex = /1|1C/g;
-        const modules = modulePropertiesListToObject(
-          modulesProperties, typeRegex);
-
-        result.push({
-          name: iod.name + ' IOD Modules',
-          origin: origin,
-          raw: modules,
-          data: JSON.stringify(modules, null, '  ')
-        });
-      }
+      result = parsePs33Node(partNode, origin);
     } else if (label === 'PS3.5') {
-      // 32-bit VL VRs
-      // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/chapter_7.html#table_7.1-1
-      const vrs = parseVrVl32bits(
-        partNode.querySelector(getSelector('table_7.1-1')),
-        'Data Element with Explicit VR');
-      result = {
-        name: '32-bit VL VRs',
-        origin: origin,
-        raw: vrs,
-        data: vrs.toString()
-      };
+      result = parsePs35Node(partNode, origin);
     } else if (label === 'PS3.6') {
-      let tags36 = [];
-      // 0002: DICOM File Meta Elements
-      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_7.html#table_7-1
-      tags36 = tags36.concat(parseTagsTableNode(
-        partNode.querySelector(getSelector('table_7-1')),
-        partNode,
-        'Registry of DICOM File Meta Elements'));
-      // 0004: DICOM Directory Structuring Elements
-      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_8.html#table_8-1
-      tags36 = tags36.concat(parseTagsTableNode(
-        partNode.querySelector(getSelector('table_8-1')),
-        partNode,
-        'Registry of DICOM Directory Structuring Elements'));
-      // DICOM Data Elements
-      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_6.html#table_6-1
-      tags36 = tags36.concat(parseTagsTableNode(
-        partNode.querySelector(getSelector('table_6-1')),
-        partNode,
-        'Registry of DICOM Data Elements'));
-
-      const tagsResults = {
-        name: 'DICOM Tags',
-        origin: origin,
-        raw: tags36,
-        data: stringifyTags(adaptTagsForDwv(tags36))
-      };
-
-      // transfer syntax
-      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_A.html#table_A-1
-      const uids = parseUidTableNode(
-        partNode.querySelector(getSelector('table_A-1')),
-        partNode,
-        'UID Values',
-        'Transfer Syntax');
-      const uidsResults = {
-        name: 'Transfer syntax UIDs',
-        origin: origin,
-        raw: uids,
-        data: JSON.stringify(adaptUidsForDwv(uids), null, '  ')
-      };
-
-      // SOPs
-      // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_A.html#table_A-1
-      const sops = parseUidTableNode(
-        partNode.querySelector(getSelector('table_A-1')),
-        partNode,
-        'UID Values',
-        'SOP');
-      const sopsResults = {
-        name: 'SOP class and instance UIDs',
-        origin: origin,
-        raw: sops,
-        data: JSON.stringify(adaptUidsForDwv(sops), null, '  ')
-      };
-
-      result = [tagsResults, uidsResults, sopsResults];
+      result = parsePs36Node(partNode, origin);
     } else if (label === 'PS3.7') {
-      let tags37 = [];
-      // 0000: command
-      // https://dicom.nema.org/medical/dicom/current/output/chtml/part07/chapter_E.html#table_E.1-1
-      tags37 = tags37.concat(parseTagsTableNode(
-        partNode.querySelector(getSelector('table_E.1-1')),
-        partNode,
-        'Command Fields'));
-      // 0000: command (retired)
-      // https://dicom.nema.org/medical/dicom/current/output/chtml/part07/sect_E.2.html#table_E.2-1
-      tags37 = tags37.concat(parseTagsTableNode(
-        partNode.querySelector(getSelector('table_E.2-1')),
-        partNode,
-        'Retired Command Fields'));
-
-      result = {
-        name: 'DICOM tags group 0000',
-        origin: origin,
-        raw: tags37,
-        data: stringifyTags(adaptTagsForDwv(tags37))
-      };
+      result = parsePs37Node(partNode, origin);
     } else {
       throw new Error('Unknown book label: ' + label);
     }
 
     return result;
   }
+}
+
+/**
+ * Parse a PS3.3 node: Information Object Definitions (IODs)
+ * https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html
+ *
+ * @param {Node} partNode The main DOM node.
+ * @param {string} origin The origin of the node (optional).
+ * @return {object} A result object {name, origin, raw, data}.
+ */
+function parsePs33Node(partNode, origin) {
+  const result = [];
+  // CT: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_A.3.3.html#table_A.3-1
+  const iodList = [
+    {name: 'CT Image', label: 'table_A.3-1'},
+    {name: 'MR Image', label: 'table_A.4-1'},
+    // {name: 'NM Image', label: 'table_A.5-1'},
+    // {name: 'US Image', label: 'table_A.6-1'},
+    // {name: 'PET Image', label: 'table_A.21.3-1'},
+    // {
+    //   name: 'Segmentation',
+    //   label: 'table_A.51-1',
+    //   fgLabel: 'table_A.51-2'
+    // }
+  ];
+
+  for (const iod of iodList) {
+    const usageRegex = /M|C/g;
+    let fgModulesProperties = null;
+    // functional group modules
+    if (typeof iod.fgLabel !== 'undefined') {
+      const fgModulesDefs = parseModuleListNode(
+        partNode.querySelector(getSelector(iod.fgLabel)),
+        partNode,
+        iod.name + ' Functional Group Macros',
+        usageRegex
+      );
+      fgModulesProperties =
+        parseModulesFromList(fgModulesDefs, partNode);
+    }
+    // IOD modules
+    const iodModulesDefs = parseModuleListNode(
+      partNode.querySelector(getSelector(iod.label)),
+      partNode,
+      iod.name + ' IOD Modules',
+      usageRegex
+    );
+    const modulesProperties = parseModulesFromList(
+      iodModulesDefs, partNode, fgModulesProperties);
+
+    const typeRegex = /1|1C/g;
+    const modules = modulePropertiesListToObject(
+      modulesProperties, typeRegex);
+
+    result.push({
+      name: iod.name + ' IOD Modules',
+      origin: origin,
+      raw: modules,
+      data: JSON.stringify(modules, null, '  ')
+    });
+  }
+  return result;
+}
+
+/**
+ * Parse a PS3.5 node: Data Structures and Encoding
+ * https://dicom.nema.org/medical/dicom/current/output/chtml/part05/PS3.5.html
+ *
+ * @param {Node} partNode The main DOM node.
+ * @param {string} origin The origin of the node (optional).
+ * @return {object} A result object {name, origin, raw, data}.
+ */
+function parsePs35Node(partNode, origin) {
+  // 32-bit VL VRs
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/chapter_7.html#table_7.1-1
+  const specialVrs = parseVrCaptionNode(
+    partNode.querySelector(getSelector('table_7.1-1')),
+    'Data Element with Explicit VR');
+  return {
+    name: '32-bit VL VRs',
+    origin: origin,
+    raw: specialVrs,
+    data: specialVrs.toString()
+  };
+}
+
+/**
+ * Parse a PS3.6 node:  Data Dictionary
+ * https://dicom.nema.org/medical/dicom/current/output/chtml/part06/PS3.6.html
+ *
+ * @param {Node} partNode The main DOM node.
+ *  * @param {string} origin The origin of the node (optional).
+ * @return {object} A result object {name, origin, raw, data}.
+ */
+function parsePs36Node(partNode, origin) {
+  let tags36 = [];
+  // 0002: DICOM File Meta Elements
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_7.html#table_7-1
+  tags36 = tags36.concat(parseTagsTableNode(
+    partNode.querySelector(getSelector('table_7-1')),
+    partNode,
+    'Registry of DICOM File Meta Elements'));
+  // 0004: DICOM Directory Structuring Elements
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_8.html#table_8-1
+  tags36 = tags36.concat(parseTagsTableNode(
+    partNode.querySelector(getSelector('table_8-1')),
+    partNode,
+    'Registry of DICOM Directory Structuring Elements'));
+  // DICOM Data Elements
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_6.html#table_6-1
+  tags36 = tags36.concat(parseTagsTableNode(
+    partNode.querySelector(getSelector('table_6-1')),
+    partNode,
+    'Registry of DICOM Data Elements'));
+
+  const tagsResults = {
+    name: 'DICOM Tags',
+    origin: origin,
+    raw: tags36,
+    data: stringifyTags(adaptTagsForDwv(tags36))
+  };
+
+  // transfer syntax
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_A.html#table_A-1
+  const uids = parseUidTableNode(
+    partNode.querySelector(getSelector('table_A-1')),
+    partNode,
+    'UID Values',
+    'Transfer Syntax');
+  const uidsResults = {
+    name: 'Transfer syntax UIDs',
+    origin: origin,
+    raw: uids,
+    data: JSON.stringify(adaptUidsForDwv(uids), null, '  ')
+  };
+
+  // SOPs
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_A.html#table_A-1
+  const sops = parseUidTableNode(
+    partNode.querySelector(getSelector('table_A-1')),
+    partNode,
+    'UID Values',
+    'SOP');
+  const sopsResults = {
+    name: 'SOP class and instance UIDs',
+    origin: origin,
+    raw: sops,
+    data: JSON.stringify(adaptUidsForDwv(sops), null, '  ')
+  };
+
+  return [tagsResults, uidsResults, sopsResults];
+}
+
+/**
+ * Parse a PS3.7 node: Message Exchange
+ * https://dicom.nema.org/medical/dicom/current/output/chtml/part07/PS3.7.html
+ *
+ * @param {Node} partNode The main DOM node.
+ * @param {string} origin The origin of the node (optional).
+ * @return {object} A result object {name, origin, raw, data}.
+ */
+function parsePs37Node(partNode, origin) {
+  let tags37 = [];
+  // 0000: command
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part07/chapter_E.html#table_E.1-1
+  tags37 = tags37.concat(parseTagsTableNode(
+    partNode.querySelector(getSelector('table_E.1-1')),
+    partNode,
+    'Command Fields'));
+  // 0000: command (retired)
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part07/sect_E.2.html#table_E.2-1
+  tags37 = tags37.concat(parseTagsTableNode(
+    partNode.querySelector(getSelector('table_E.2-1')),
+    partNode,
+    'Retired Command Fields'));
+
+  return {
+    name: 'DICOM tags group 0000',
+    origin: origin,
+    raw: tags37,
+    data: stringifyTags(adaptTagsForDwv(tags37))
+  };
 }
 
 /**
@@ -287,7 +337,8 @@ function extractCondition(str) {
 
 /**
  * Get a compare function for a specific object property.
- * @param {String} property The object property to sort by.
+ *
+ * @param {string} property The object property to sort by.
  * @returns A compare function.
  */
 function getCompare(property) {
@@ -304,6 +355,7 @@ function getCompare(property) {
 
 /**
  * Get a multi compare function for a list of object properties.
+ *
  * @param {Array} properties The list of object properties to sort by.
  * @returns A compare function.
  */
@@ -323,7 +375,9 @@ function getMultiCompare(properties) {
 
 /**
  * Parse a DICOM standard XML table node.
+ *
  * @param {Node} tableNode A DOM table node.
+ * @param {Node} partNode The main DOM node.
  * @param {String|undefined} expectedCaption Optional expected table caption.
  * @return {Array} The table property values.
  */
@@ -349,8 +403,9 @@ function parseTableNode(tableNode, partNode, expectedCaption) {
 
 /**
  * Check a node caption.
+ *
  * @param {Node} node A DOM node.
- * @param {String} expectedCaption The expected node caption.
+ * @param {string} expectedCaption The expected node caption.
  * @param {Bool} isEqualCheck Bool to perform equal or include
  *   caption text check.
  */
@@ -388,7 +443,9 @@ function checkNodeCaption(node, expectedCaption, isEqualCheck) {
 
 /**
  * Parse a DICOM standard XML table row node.
+ *
  * @param {Node} trNode A DOM row node.
+ * @param {Node} partNode The main DOm node.
  * @return {Array} The row property values.
  */
 function parseTrNode(trNode, partNode) {
@@ -407,6 +464,7 @@ function parseTrNode(trNode, partNode) {
  * Parse a DICOM standard XML table row cell node.
  *
  * @param {Node} tdNode A DOM cell node.
+ * @param {Node} partNode The main DOM node.
  * @return {Array} The cell property values.
  */
 function parseTdNode(tdNode, partNode) {
@@ -433,6 +491,7 @@ function parseTdNode(tdNode, partNode) {
  * mainly para and note.
  *
  * @param {Node} tdNode A DOM para node.
+ * @param {Node} partNode The main DOM node.
  * @return {string} The para value.
  */
 function parseContentNode(paraNode, partNode) {
@@ -530,8 +589,10 @@ function cleanString(str) {
 
 /**
  * Parse a DICOM standard XML tags table node.
+ *
  * @param {Node} tableNode A DOM table node.
- * @param {String} expectedCaption The expected node caption.
+ * @param {Node} partNode The main DOM node.
+ * @param {string} expectedCaption The expected node caption.
  * @return {Array} The list of DICOM tags objects.
  */
 function parseTagsTableNode(tableNode, partNode, expectedCaption) {
@@ -549,9 +610,11 @@ function parseTagsTableNode(tableNode, partNode, expectedCaption) {
 
 /**
  * Parse a DICOM standard XML UIDs table node.
+ *
  * @param {Node} tableNode A DOM table node.
- * @param {String} expectedCaption The expected node caption.
- * @param {String} uidType The UID type.
+ * @param {Node} partNode The main DOM node.
+ * @param {string} expectedCaption The expected node caption.
+ * @param {string} uidType The UID type.
  * @returns {object} The list of transfer syntax UIDs.
  */
 function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
@@ -572,13 +635,13 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
  *   can be an IOD modules list or a functional group macros.
  *
  * @param {Node} node The content node.
- * @param {Node} partNode The main part node.
- * @param {string} name The expected node caption.
+ * @param {Node} partNode The main DOM node.
+ * @param {string} expectedCaption The expected node caption.
  * @param {string} usageRegex Optional usage selection regex.
  * @returns {Array} The list of IOD modules.
  */
-function parseModuleListNode(node, partNode, name, usageRegex) {
-  const values = parseTableNode(node, partNode, name);
+function parseModuleListNode(node, partNode, expectedCaption, usageRegex) {
+  const values = parseTableNode(node, partNode, expectedCaption);
   const modules = [];
   let module = null;
   for (const value of values) {
@@ -594,7 +657,7 @@ function parseModuleListNode(node, partNode, name, usageRegex) {
  * Get modules from a modules definition list.
  *
  * @param {Array} list The IOD module list.
- * @param {Node} partNode The main part node.
+ * @param {Node} partNode The main DOM node.
  * @param {object} fgModulesProperties Optional functional group
  *   modules properties, undefined to parse a functional group.
  * @returns {Array} The modules array.
@@ -632,15 +695,17 @@ let macros = {};
  * Parse a Information Entities (IE) modules DICOM standard XML node.
  *
  * @param {Node} node The content node.
+ * @param {Node} partNode The main DOM node.
+ * @param {string} expectedCaption The expected node caption.
  * @returns {Array} The list of ....
  */
-function parseModuleAttributesNode(node, partNode, name, fgModules) {
+function parseModuleAttributesNode(node, partNode, expectedCaption, fgModules) {
   // expecting macro includes as: 'Include <xref linkend="table_10-18"
   //   xrefstyle="select: label quotedtitle"/>'
   const includeMacro = 'Include linkend=';
   const includeFG = 'Include one or more Functional Group Macros';
 
-  const rows = parseTableNode(node, partNode, name);
+  const rows = parseTableNode(node, partNode, expectedCaption);
   const result = [];
   let startSq0 = false;
   let startSq1 = false;
@@ -743,14 +808,15 @@ function parseModuleAttributesNode(node, partNode, name, fgModules) {
 
 /**
  * Parse a VR 32bit VL DICOM standard XML node.
+ *
  * @param {Node} node The content node.
- * @param {String} expectedCaptionRoot The expected node caption root.
+ * @param {string} expectedCaptionRoot The expected node caption root.
  * @returns {Array} The list of 32bit VRs.
  */
-function parseVrVl32bits(node, expectedCaptionRoot) {
+function parseVrCaptionNode(node, expectedCaptionRoot) {
   // check node
   if (!node) {
-    throw new Error('No VrVl32bits node.');
+    throw new Error('No Vr caption node.');
   }
   // check caption
   checkNodeCaption(node, expectedCaptionRoot, false);
@@ -769,8 +835,9 @@ function parseVrVl32bits(node, expectedCaptionRoot) {
 
 /**
  * Parse tag values as array and return a tag object.
+ *
  * @param {Array} properties A tag row array of properties (length=6).
- * @return {Object} A tag object: {group, element, keyword, vr, vm}.
+ * @return {object} A tag object: {group, element, keyword, vr, vm}.
  */
 function tagPropertiesToObject(properties) {
   // check length (then only use the first element of each item)
@@ -794,9 +861,10 @@ function tagPropertiesToObject(properties) {
 
 /**
  * Parse UID values as array and return a UID object.
+ *
  * @param {Array} properties A UID row array of properties (length=6).
- * @param {String} uidType The UID type.
- * @return {Object} A tag object: {group, element, keyword, vr, vm}.
+ * @param {string} uidType The UID type.
+ * @return {object} A tag object: {group, element, keyword, vr, vm}.
  */
 function uidPropertiesToObject(properties, uidType) {
   // check length (then only use the first element of each item)
@@ -971,6 +1039,7 @@ function modulePropertiesToObject(properties, typeRegex) {
  * - replace 'x' in groups and elements
  * - add GenericGroupLength to groups
  * - replace non single VRs
+ *
  * @param {Array} inputTags An array of tags.
  * @returns {Array} The adapted tags as a new array.
  */
@@ -1055,6 +1124,7 @@ function adaptTagsForDwv(inputTags) {
  * Adapt UIDs:
  * - replace '&amp;' in name with '&'
  * - remove comments in name: string after ':'
+ *
  * @param {object} inputUids An list of UIDs.
  * @returns {object} The adapted UIDs as a new list.
  */
@@ -1079,8 +1149,9 @@ function adaptUidsForDwv(inputUids) {
 
 /**
  * Stringify a tags array.
+ *
  * @param {Array} tags The tags array.
- * @returns {String} A stringified version of the input array.
+ * @returns {string} A stringified version of the input array.
  */
 function stringifyTags(tags) {
   // check tags
