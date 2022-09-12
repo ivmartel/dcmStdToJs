@@ -181,7 +181,20 @@ function parsePs35Node(partNode, origin, version) {
     data: JSON.stringify(vrVl32s)
   };
 
-  return [vrsResult, vrVl32Result];
+  // Character set VRs
+  // https://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_6.1.2.2
+  const charSetVrs = parseCharSetVrNode(
+    partNode.querySelector(getSelector('sect_6.1.2.2')));
+
+  const charSetVrResult = {
+    name: 'Character Set VRs',
+    origin: origin,
+    raw: charSetVrs,
+    data: JSON.stringify(charSetVrs)
+  };
+
+
+  return [vrsResult, vrVl32Result, charSetVrResult];
 }
 
 /**
@@ -888,7 +901,7 @@ function parseModuleAttributesNode(node, partNode, expectedCaption, fgModules) {
  *
  * @param {Node} node The content node.
  * @param {string} expectedCaptionRoot The expected node caption root.
- * @returns {Array} The list of 32bit VRs.
+ * @returns {Array} The list VRs.
  */
 function parseVrCaptionNode(node, expectedCaptionRoot) {
   // check node
@@ -906,6 +919,40 @@ function parseVrCaptionNode(node, expectedCaptionRoot) {
   const result = [];
   for (const match of matches) {
     result.push(match[1]); // [0] includes non capturing groups
+  }
+  return result;
+}
+
+/**
+ * Parse a Character Set VR DICOM standard XML node.
+ *
+ * @param {Node} node The content node.
+ * @param {string} expectedCaptionRoot The expected node caption root.
+ * @returns {Array} The list of VRs.
+ */
+function parseCharSetVrNode(node) {
+  // check node
+  if (!node) {
+    throw new Error('No char Vr node.');
+  }
+
+  const result = [];
+
+  // expecting something like:
+  // For Data Elements with Value Representations of SH (Short String),
+  // LO (Long String), UC (Unlimited Characters), ST (Short Text),
+  // LT (Long Text), UT (Unlimited Text) or PN (Person Name)
+  const regex = /(?:\s)([A-Z]{2})(?:\s\(\w+\s\w+\))/g;
+  const paras = node.getElementsByTagName('para');
+  for (const para of paras) {
+    if (para.innerHTML.startsWith(
+      'For Data Elements with Value Representations')) {
+      const text = para.innerHTML;
+      const matches = text.matchAll(regex);
+      for (const match of matches) {
+        result.push(match[1]); // [0] includes non capturing groups
+      }
+    }
   }
   return result;
 }
