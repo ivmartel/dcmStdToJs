@@ -732,7 +732,9 @@ function stringVrTypeExtractor(str) {
  */
 function octetVrTypeExtractor(str) {
   let type;
-  if (str.startsWith('An octet-stream')) {
+  // pre 2017 uses string and not stream...
+  if (str.startsWith('An octet-stream') ||
+    str.startsWith('A string of bytes')) {
     type = 'Uint8';
   }
   return type;
@@ -779,7 +781,8 @@ function floatVrTypeExtractor(str) {
  */
 function wordVrTypeExtractor(str) {
   let type;
-  const regex = /A stream of (\d{2})-bit words/g;
+  // pre 2017 uses string and not stream...
+  const regex = /A (?:stream|string) of (\d{2})-bit words/g;
   const match = [...str.matchAll(regex)];
   if (match.length === 1 && match[0].length === 2) {
     type = 'Uint' + match[0][1];
