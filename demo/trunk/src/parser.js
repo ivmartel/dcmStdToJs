@@ -140,11 +140,21 @@ function parsePs35Node(partNode, origin, version) {
   const vrs = parseVrTableNode(
     partNode.querySelector(getSelector('table_6.2-1')),
     'DICOM Value Representations');
+
+  const vrsNames = Object.keys(vrs);
+
+  // replace undefined with null for JSON
+  for (let i = 0; i < vrsNames.length; ++i) {
+    if (typeof vrs[vrsNames[i]] === 'undefined') {
+      vrs[vrsNames[i]] = null;
+    }
+  }
+
   const vrsResult = {
     name: 'VRs',
     origin: origin,
     raw: vrs,
-    data: JSON.stringify(vrs)
+    data: JSON.stringify(vrs, null, '  ')
   };
 
   // 32-bit VL VRs
@@ -169,7 +179,7 @@ function parsePs35Node(partNode, origin, version) {
 
   let vrVl32s = specialVrs;
   if (!isBefore2019e) {
-    vrVl32s = vrs.filter(function (item) {
+    vrVl32s = vrsNames.filter(function (item) {
       return !specialVrs.includes(item);
     });
   }
@@ -192,7 +202,6 @@ function parsePs35Node(partNode, origin, version) {
     raw: charSetVrs,
     data: JSON.stringify(charSetVrs)
   };
-
 
   return [vrsResult, vrVl32Result, charSetVrResult];
 }
@@ -700,6 +709,101 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
 }
 
 /**
+ * Extract a string VR type for a string.
+ *
+ * @param {string} str Input string.
+ * @returns {string|undefined} The type if found or undefined.
+ */
+function stringVrTypeExtractor(str) {
+  let type;
+  if (str.startsWith('A string of characters') ||
+    str.startsWith('A character string') ||
+    str.startsWith('A concatenated date-time character string')) {
+    type = 'string';
+  }
+  return type;
+}
+
+/**
+ * Extract an octet VR type for a string.
+ *
+ * @param {string} str Input string.
+ * @returns {string|undefined} The type if found or undefined.
+ */
+function octetVrTypeExtractor(str) {
+  let type;
+  if (str.startsWith('An octet-stream')) {
+    type = 'Uint8';
+  }
+  return type;
+}
+
+/**
+ * Extract a integer VR type for a string.
+ *
+ * @param {string} str Input string.
+ * @returns {string|undefined} The type if found or undefined.
+ */
+function intVrTypeExtractor(str) {
+  let type;
+  const regex = /(Signed|Unsigned) binary integer (\d{2}) bits long/g;
+  const match = [...str.matchAll(regex)];
+  if (match.length === 1 && match[0].length === 3) {
+    type = match[0][1] === 'Unsigned' ? 'Ui' : 'I';
+    type += 'nt' + match[0][2];
+  }
+  return type;
+}
+
+/**
+ * Extract a float VR type for a string.
+ *
+ * @param {string} str Input string.
+ * @returns {string|undefined} The type if found or undefined.
+ */
+function floatVrTypeExtractor(str) {
+  let type;
+  const regex = /IEEE 754:1985 (\d{2})-bit Floating Point Number/g;
+  const match = [...str.matchAll(regex)];
+  if (match.length === 1 && match[0].length === 2) {
+    type = 'Float' + match[0][1];
+  }
+  return type;
+}
+
+/**
+ * Extract a word VR type for a string.
+ *
+ * @param {string} str Input string.
+ * @returns {string|undefined} The type if found or undefined.
+ */
+function wordVrTypeExtractor(str) {
+  let type;
+  const regex = /A stream of (\d{2})-bit words/g;
+  const match = [...str.matchAll(regex)];
+  if (match.length === 1 && match[0].length === 2) {
+    type = 'Uint' + match[0][1];
+  }
+  return type;
+}
+
+/**
+ * Extract a flaot word VR type for a string.
+ *
+ * @param {string} str Input string.
+ * @returns {string|undefined} The type if found or undefined.
+ */
+function floatWordVrTypeExtractor(str) {
+  let type;
+  const regex = /(\d{2})-bit IEEE 754:1985 floating point words/g;
+  const match = [...str.matchAll(regex)];
+  if (match.length === 1 && match[0].length === 2) {
+    type = 'Uint' + match[0][1];
+  }
+  return type;
+}
+
+/**
  * Parse a VR 32bit VL DICOM standard XML node.
  * @param {Node} tableNode The content node.
  * @param {Node} partNode The main DOM node.
@@ -708,14 +812,36 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
  */
 function parseVrTableNode(tableNode, partNode, expectedCaption) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
-  const vrs = [];
-  let vr = null;
+  const vrs = {};
+
+  const extractors = [
+    stringVrTypeExtractor,
+    octetVrTypeExtractor,
+    intVrTypeExtractor,
+    floatVrTypeExtractor,
+    wordVrTypeExtractor,
+    floatWordVrTypeExtractor
+  ];
+
   for (const value of values) {
-    // just keep 'short' VR name
-    vr = value[0][0];
-    if (vr) {
-      vrs.push(vr);
+    // 'short' VR name
+    let vrName = value[0][0];
+    // definition
+    let definition = value[1][0];
+    let type;
+    for (const extractor of extractors) {
+      type = extractor(definition);
+      // exit if found
+      if (typeof type !== 'undefined') {
+        break;
+      }
     }
+    // log unknown types (typically AT and SQ)
+    if (typeof type === 'undefined') {
+      console.log('Unknown VR type for ' + vrName);
+    }
+    // store
+    vrs[vrName] = type;
   }
   return vrs;
 }
