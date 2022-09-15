@@ -191,7 +191,7 @@ function parsePs35Node(partNode, origin, version) {
     data: JSON.stringify(vrVl32s)
   };
 
-  // Character set VRs
+  // Extended or replaced default character repertoire VRs
   // https://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_6.1.2.2
   const charSetVrs = parseCharSetVrNode(
     partNode.querySelector(getSelector('sect_6.1.2.2')));
@@ -1041,7 +1041,7 @@ function parseVrCaptionNode(node, expectedCaptionRoot) {
   checkNodeCaption(node, expectedCaptionRoot, false);
   // expecting something like:
   // 'Data Element with Explicit VR of OB, OW, OF, OD, SQ, UT or UN'
-  const regex = /(?:\s)([A-Z]{2})(?:,|\sor|$)/g;
+  const regex = /(?:\s)([A-Z]{2})(?:,|\sor|\sand|$)/g;
   const caption = node.getElementsByTagName('caption');
   const text = caption[0].innerHTML;
   const matches = text.matchAll(regex);
