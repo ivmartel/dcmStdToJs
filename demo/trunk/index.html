@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', gui.onDOMContentLoaded);
 
   <p>
     <b>part03</b>: IOD modules;
-    <b>part05</b>: list of 32bit VL VRs;
+    <b>part05</b>: VR types, 32bit VL VRs, char set VRs;
     <br><b>part06</b> tags group '0002', '0004' and superior + UIDs;
     <b>part07</b> tags group '0000'.
   </p>
@@ -47,18 +47,17 @@ document.addEventListener('DOMContentLoaded', gui.onDOMContentLoaded);
   <li><label for="fileupload">Select a file to parse: </label>
   <input id="fileupload" type="file"></li>
 
-  <li>Or
-  <label for="dicomVersions">choose an online version:</label>
+  <li>Or choose an online
+  <label for="dicomVersions">version:</label>
   <select name="dicomVersions" id="dicomVersions"></select>
+  <label for="dicomParts">part:</label>
+  <select name="dicomParts" id="dicomParts"></select>
   <span id="versionLinks"></span></li>
 
-  <li>Or use (default) online 2019a part06
-  (<a href="https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard/2019a-part06.xml" target="_parent">xml</a>,
-  <a href="http://medical.nema.org/medical/dicom/2019a/output/html/part06.html" target="_parent">html</a>)</li>
   </ul>
 
   <p>
-  <button id="parseButton">Parse</button>
+  <button id="parseButton" disabled>Parse</button>
   </p>
 
   <progress id="progressBar" value="0" max="100"></progress>

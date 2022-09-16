@@ -10,14 +10,16 @@ export class Gui {
    */
   setup() {
     document.getElementById('parseButton').addEventListener(
-      'click', onParseButton);
+      'click', onParseButtonClick);
+    document.getElementById('fileupload').addEventListener(
+      'change', onFileuploadChange);
   }
 
   /**
    * DOMContentLoaded handler: update the version select.
    */
   onDOMContentLoaded() {
-    updateVersionSelect();
+    updateStandardSelect();
   }
 }
 
@@ -34,10 +36,24 @@ function setProgress(event) {
 }
 
 /**
- * Load selected file or link.
+ * Handle file upload change event.
+ * @param {Event} event The file upload change event.
+ */
+function onFileuploadChange(event) {
+  // enable / disable parse button if files were selected
+  const parseButton = document.getElementById('parseButton');
+  if (event.target.files.length !== 0) {
+    parseButton.disabled = false;
+  } else {
+    parseButton.disabled = true;
+  }
+}
+
+/**
+ * Handle parse button click event.
  * @param {Event} event The parse button click event.
  */
-function onParseButton(event) {
+function onParseButtonClick(event) {
   const button = event.target;
 
   // reset progress
@@ -82,12 +98,12 @@ function onParseButton(event) {
     let selectedVersion = dicomVersionsSelect.options[
       dicomVersionsSelect.selectedIndex
     ].value;
-    const defaultVersion = '2019a';
-    if (selectedVersion.length === 0) {
-      selectedVersion = defaultVersion;
-    }
+    const dicomPartsSelect = document.getElementById('dicomParts');
+    let selectedPart = dicomPartsSelect.options[
+      dicomPartsSelect.selectedIndex
+    ].value;
 
-    const url = nema.getDicomPart06Links()[selectedVersion].xml;
+    const url = nema.getDicomPartLinks(selectedPart)[selectedVersion].xml;
     const request = new XMLHttpRequest();
     request.open('GET', url, true);
     request.responseType = 'document';
@@ -187,38 +203,69 @@ function appendResult(name, content) {
 }
 
 /**
- * Update version select with available standard versions
+ * Update standard select with available standard versions
  */
-function updateVersionSelect() {
+function updateStandardSelect() {
   const versionSelect = document.getElementById('dicomVersions');
 
   // place holder option
-  let option = document.createElement('option');
-  option.disabled = true;
-  option.selected = true;
-  option.text = 'Select a version';
-  option.value = '';
-  versionSelect.add(option);
+  let versionOption = document.createElement('option');
+  versionOption.disabled = true;
+  versionOption.selected = true;
+  versionOption.text = 'Select a version';
+  versionOption.value = '';
+  versionSelect.add(versionOption);
   // version options
   const versions = nema.getDicomVersions();
   for (let i = 0; i < versions.length; ++i) {
-    option = document.createElement('option');
-    option.text = versions[i];
-    option.value = versions[i];
-    versionSelect.add(option);
+    versionOption = document.createElement('option');
+    versionOption.text = versions[i];
+    versionOption.value = versions[i];
+    versionSelect.add(versionOption);
   }
+
+  const partSelect = document.getElementById('dicomParts');
+
+  // place holder option
+  let partOption = document.createElement('option');
+  partOption.disabled = true;
+  partOption.selected = true;
+  partOption.text = 'Select a part';
+  partOption.value = '';
+  partSelect.add(partOption);
+  // part options
+  const parts = nema.getDicomParts();
+  for (let i = 0; i < parts.length; ++i) {
+    partOption = document.createElement('option');
+    partOption.text = parts[i];
+    partOption.value = parts[i];
+    partSelect.add(partOption);
+  }
+
+  const parseButton = document.getElementById('parseButton');
 
   // update associated links on select change
   versionSelect.onchange = function (event) {
-    updateVersionLinks(event.target.value);
+    const part = partSelect[partSelect.selectedIndex].value;
+    if (part !== '') {
+      updateVersionLinks(event.target.value, part);
+      parseButton.disabled = false;
+    }
+  };
+  partSelect.onchange = function (event) {
+    const version = versionSelect[versionSelect.selectedIndex].value;
+    if (version !== '') {
+      updateVersionLinks(version, event.target.value);
+      parseButton.disabled = false;
+    }
   };
 }
 
 /**
  *
  */
-function updateVersionLinks(version) {
-  const links = nema.getDicomPart06Links()[version];
+function updateVersionLinks(version, partNumber) {
+  const links = nema.getDicomPartLinks(partNumber)[version];
   // xml standard link
   const xmlLink = document.createElement('a');
   xmlLink.href = links.xml;
@@ -232,7 +279,7 @@ function updateVersionLinks(version) {
   // clear
   versionLinks.innerHTML = '';
   // add new links
-  versionLinks.appendChild(document.createTextNode('(dict (part06): '));
+  versionLinks.appendChild(document.createTextNode('(dict: '));
   versionLinks.append(xmlLink);
   versionLinks.appendChild(document.createTextNode(', '));
   versionLinks.append(htmlLink);

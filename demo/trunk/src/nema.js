@@ -1,20 +1,25 @@
 // DICOM versions object
 // (only those published with this repo since NEMA does not do CORS...)
 const dicomVersions = {
-  '2014': ['a'], // ['a', 'b', 'c'],
-  '2015': ['a'], // ['a', 'b', 'c'],
-  '2016': ['a'], // ['a', 'b', 'c', 'd', 'e'],
-  '2017': ['a'], // ['a', 'b', 'c', 'd', 'e'],
-  '2018': ['a'], // ['a', 'b', 'c', 'd', 'e'],
-  '2019': ['a'], // ['a', 'b', 'c', 'd', 'e'],
-  '2020': ['a'], // ['a', 'b', 'c', 'd', 'e'],
-  '2021': ['a'], // ['a', b', 'c']
+  '2016': ['a'],
+  '2018': ['a'],
+  '2020': ['a'],
+  '2022': ['a'],
 };
+
+const dicomParts = ['03', '05', '06', '07'];
+
+/**
+ * Get the list of DICOM standard parts.
+ * @returns An array of parts
+ */
+export function getDicomParts() {
+  return dicomParts;
+}
 
 /**
  * Get the list of DICOM standard versions.
- * @returns An array of versions, ordered from most recent to older
- *   and with a 'current' first element.
+ * @returns An array of versions, ordered from most recent to older.
  */
 export function getDicomVersions() {
   const keys = Object.keys(dicomVersions);
@@ -28,8 +33,6 @@ export function getDicomVersions() {
       versions.push(majorVersion + minorVersions[j]);
     }
   }
-  // add current shortcut
-  // versions.splice(0, 0, 'current');
   // return
   return versions;
 }
@@ -47,8 +50,7 @@ function compare(a, b) {
  *   ...
  * }
  */
-export function getDicomPart06Links() {
-  const partNumber = '06';
+export function getDicomPartLinks(partNumber) {
   const versions = getDicomVersions();
   const links = {};
   for (let i = 0; i < versions.length; ++i) {
@@ -62,32 +64,34 @@ export function getDicomPart06Links() {
 
 function storeLink(storage, version, pNumber) {
   storage[version] = {
-    'xml': getNemaLink(version, 'xml', pNumber),
-    'html': getNemaLink(version, 'html', pNumber),
+    'xml': getXmlLink(version, pNumber),
+    'html': getHtmlLink(version, pNumber),
   };
 }
 
 /**
- * Get the nema link to the standard.
+ * Get the xml link to the standard.
+ * Links go to github since nema does not publish standard with CORS
+ *
  * @param {String} version The standard version.
- * @param {String} format The format of the retrieved file: 'xml' or 'html'
  * @param {String} partNumber The standard part number as a string.
  * @returns The full link to the desired file.
  */
-function getNemaLink(version, format, partNumber) {
-  // no https...
-  const nemaRoot = 'http://dicom.nema.org/medical/dicom/';
+function getXmlLink(version, partNumber) {
+  const githubRoot = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard';
   const partFileName = 'part' + partNumber;
-  let link = nemaRoot + version + '/';
-  if (format === 'xml') {
-    // not published with CORS...
-    //link += 'source/docbook/' +
-    //  partFileName + '/' + partFileName + '.xml';
-    const githubRoot = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard/';
-    link = githubRoot + version + '-' + partFileName + '.xml';
-  } else if (format === 'html') {
-    link += 'output/html/' +
-      partFileName + '.html';
-  }
-  return link;
+  return githubRoot + '/' + version + '/' + partFileName + '.xml';
+}
+
+/**
+ * Get the html link to the standard.
+ *
+ * @param {String} version The standard version.
+ * @param {String} partNumber The standard part number as a string.
+ * @returns The full link to the desired html.
+ */
+function getHtmlLink(version, partNumber) {
+  const nemaRoot = 'http://dicom.nema.org/medical/dicom';
+  const partFileName = 'part' + partNumber;
+  return nemaRoot + '/' + version + '/output/html/' + partFileName + '.html';
 }
