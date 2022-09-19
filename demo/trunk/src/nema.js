@@ -7,6 +7,7 @@ const dicomVersions = {
   '2022': ['a'],
 };
 
+// Supported DICOM parts
 const dicomParts = ['03', '05', '06', '07'];
 
 /**
