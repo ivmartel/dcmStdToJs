@@ -6,19 +6,12 @@ Generate js/json from the DICOM standard in xml.
 
 ## Available Scripts
 
-``` bash
-# install dependencies
-yarn install
+- `install`: install dependencies
+- `start`: serve with hot reload at localhost:8080
+- `lint`: lint files
+- `test`: run tests
+- `doc`: generate documentation
 
-# serve with hot reload at localhost:8080
-yarn run start
-
-# lint files
-yarn run lint
-
-# run tests
-yarn run test
-```
 ## Similar initiatives
 
 * [generate_dicom_dict.py](https://github.com/pydicom/pydicom/blob/v2.1.2/source/generate_dict/generate_dicom_dict.py) from [pydicom](https://github.com/pydicom/pydicom)
