@@ -17,7 +17,7 @@
       "package": "package.json",
       "theme_opts": {
         "title": "dcmStdToJs doc",
-        "footer": "<i>Documentation generated for dcmStdToJs v0.1.0.</i>",
+        "footer": "<i>Documentation generated for dcmStdToJs v0.2.0-beta.</i>",
         "sections": [
           "Namespaces",
           "Classes",
