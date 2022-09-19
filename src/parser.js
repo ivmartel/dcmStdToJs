@@ -8,7 +8,7 @@ export class DicomXMLParser {
    *
    * @param {Node} partNode The main DOM node.
    * @param {string} origin The origin of the node (optional).
-   * @return {object} An object containing:
+   * @returns {object} An object containing:
    * - name: a lael for the result
    * - origin: the origin of the node
    * - raw: the raw result
@@ -69,7 +69,7 @@ export class DicomXMLParser {
  *
  * @param {Node} partNode The main DOM node.
  * @param {string} origin The origin of the node (optional).
- * @return {object} A result object {name, origin, raw, data}.
+ * @returns {object} A result object {name, origin, raw, data}.
  */
 function parsePs33Node(partNode, origin) {
   const result = [];
@@ -132,7 +132,7 @@ function parsePs33Node(partNode, origin) {
  * @param {Node} partNode The main DOM node.
  * @param {string} origin The origin of the node (optional).
  * @param {object} version The version of the standard.
- * @return {object} A result object {name, origin, raw, data}.
+ * @returns {object} A result object {name, origin, raw, data}.
  */
 function parsePs35Node(partNode, origin, version) {
   // VRs
@@ -211,8 +211,8 @@ function parsePs35Node(partNode, origin, version) {
  * https://dicom.nema.org/medical/dicom/current/output/chtml/part06/PS3.6.html
  *
  * @param {Node} partNode The main DOM node.
- *  * @param {string} origin The origin of the node (optional).
- * @return {object} A result object {name, origin, raw, data}.
+ * @param {string} origin The origin of the node (optional).
+ * @returns {object} A result object {name, origin, raw, data}.
  */
 function parsePs36Node(partNode, origin) {
   let tags36 = [];
@@ -279,7 +279,7 @@ function parsePs36Node(partNode, origin) {
  *
  * @param {Node} partNode The main DOM node.
  * @param {string} origin The origin of the node (optional).
- * @return {object} A result object {name, origin, raw, data}.
+ * @returns {object} A result object {name, origin, raw, data}.
  */
 function parsePs37Node(partNode, origin) {
   let tags37 = [];
@@ -417,7 +417,7 @@ function extractCondition(str) {
  * Get a compare function for a specific object property.
  *
  * @param {string} property The object property to sort by.
- * @returns A compare function.
+ * @returns {Function} A compare function.
  */
 function getCompare(property) {
   return function (a, b) {
@@ -435,7 +435,7 @@ function getCompare(property) {
  * Get a multi compare function for a list of object properties.
  *
  * @param {Array} properties The list of object properties to sort by.
- * @returns A compare function.
+ * @returns {Function} A compare function.
  */
 function getMultiCompare(properties) {
   return function (a, b) {
@@ -456,8 +456,8 @@ function getMultiCompare(properties) {
  *
  * @param {Node} tableNode A DOM table node.
  * @param {Node} partNode The main DOM node.
- * @param {String|undefined} expectedCaption Optional expected table caption.
- * @return {Array} The table property values.
+ * @param {string|undefined} expectedCaption Optional expected table caption.
+ * @returns {Array} The table property values.
  */
 function parseTableNode(tableNode, partNode, expectedCaption) {
   // check node
@@ -484,7 +484,7 @@ function parseTableNode(tableNode, partNode, expectedCaption) {
  *
  * @param {Node} node A DOM node.
  * @param {string} expectedCaption The expected node caption.
- * @param {Bool} isEqualCheck Bool to perform equal or include
+ * @param {boolean} isEqualCheck Bool to perform equal or include
  *   caption text check.
  */
 function checkNodeCaption(node, expectedCaption, isEqualCheck) {
@@ -524,7 +524,7 @@ function checkNodeCaption(node, expectedCaption, isEqualCheck) {
  *
  * @param {Node} trNode A DOM row node.
  * @param {Node} partNode The main DOm node.
- * @return {Array} The row property values.
+ * @returns {Array} The row property values.
  */
 function parseTrNode(trNode, partNode) {
   const properties = [];
@@ -543,7 +543,7 @@ function parseTrNode(trNode, partNode) {
  *
  * @param {Node} tdNode A DOM cell node.
  * @param {Node} partNode The main DOM node.
- * @return {Array} The cell property values.
+ * @returns {Array} The cell property values.
  */
 function parseTdNode(tdNode, partNode) {
   const properties = [];
@@ -568,9 +568,9 @@ function parseTdNode(tdNode, partNode) {
  * Parse a DICOM standard XML table row cell content node,
  * mainly para and note.
  *
- * @param {Node} tdNode A DOM para node.
+ * @param {Node} paraNode A DOM para node.
  * @param {Node} partNode The main DOM node.
- * @return {string} The para value.
+ * @returns {string} The para value.
  */
 function parseContentNode(paraNode, partNode) {
   let content = '';
@@ -632,7 +632,7 @@ function parseContentNode(paraNode, partNode) {
  * Parse a DICOM standard XML VariableList node
  *
  * @param {Node} listNode A DOM list node.
- * @return {string} The list values.
+ * @returns {string} The list values.
  */
 function parseVariableListNode(listNode) {
   let content = 'enum=';
@@ -671,7 +671,7 @@ function cleanString(str) {
  * @param {Node} tableNode A DOM table node.
  * @param {Node} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption.
- * @return {Array} The list of DICOM tags objects.
+ * @returns {Array} The list of DICOM tags objects.
  */
 function parseTagsTableNode(tableNode, partNode, expectedCaption) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
@@ -808,6 +808,7 @@ function floatWordVrTypeExtractor(str) {
 
 /**
  * Parse a VR 32bit VL DICOM standard XML node.
+ *
  * @param {Node} tableNode The content node.
  * @param {Node} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption root.
@@ -916,6 +917,7 @@ let macros = {};
  * @param {Node} node The content node.
  * @param {Node} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption.
+ * @param {object} fgModules A list of functional group modules.
  * @returns {Array} The list of ....
  */
 function parseModuleAttributesNode(node, partNode, expectedCaption, fgModules) {
@@ -1056,7 +1058,6 @@ function parseVrCaptionNode(node, expectedCaptionRoot) {
  * Parse a Character Set VR DICOM standard XML node.
  *
  * @param {Node} node The content node.
- * @param {string} expectedCaptionRoot The expected node caption root.
  * @returns {Array} The list of VRs.
  */
 function parseCharSetVrNode(node) {
@@ -1090,7 +1091,7 @@ function parseCharSetVrNode(node) {
  * Parse tag values as array and return a tag object.
  *
  * @param {Array} properties A tag row array of properties (length=6).
- * @return {object} A tag object: {group, element, keyword, vr, vm}.
+ * @returns {object} A tag object: {group, element, keyword, vr, vm}.
  */
 function tagPropertiesToObject(properties) {
   // check length (then only use the first element of each item)
@@ -1117,7 +1118,7 @@ function tagPropertiesToObject(properties) {
  *
  * @param {Array} properties A UID row array of properties (length=6).
  * @param {string} uidType The UID type.
- * @return {object} A tag object: {group, element, keyword, vr, vm}.
+ * @returns {object} A tag object: {group, element, keyword, vr, vm}.
  */
 function uidPropertiesToObject(properties, uidType) {
   // check length (then only use the first element of each item)
@@ -1305,7 +1306,12 @@ function adaptTagsForDwv(inputTags) {
     throw new Error('Empty tags.');
   }
 
-  // replace 'x's in groups and elements
+  /**
+   * Replace 'x's in groups and elements.
+   *
+   * @param {string} str The input string.
+   * @returns {string} The updated string.
+   */
   function replaceXs(str) {
     str = str.replace(/xxxxx/g, 'x0004');
     str = str.replace(/xxxx/g, 'x001');

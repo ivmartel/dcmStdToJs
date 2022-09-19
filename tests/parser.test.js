@@ -8,7 +8,12 @@ import {DicomXMLParser} from '../src/parser.js';
 /* global QUnit */
 QUnit.module('parser');
 
-// convert a tag into a string array.
+/**
+ * Convert a tag into a string array.
+ *
+ * @param {object} tag The input dicom tag.
+ * @returns {Array} An array with the tag properties.
+ */
 function getTagArray(tag) {
   const res = [];
   res.push('(' + tag.group.substr(2) + ',' + tag.element.substr(2) + ')');
@@ -21,8 +26,69 @@ function getTagArray(tag) {
   res.push('');
   return res;
 }
+
+/**
+ * Get a fake dicom book DOM node.
+ *
+ * @param {string} label The dicom part label
+ * @returns {Node} A DOM node.
+ */
+function getBookNode(label) {
+  const node = document.createElement('div');
+  const book = document.createElement('book');
+  const subtitle = document.createElement('subtitle');
+  subtitle.appendChild(
+    document.createTextNode('DICOM ' + label + ' 2020a -'));
+  book.setAttribute('label', label);
+  book.appendChild(subtitle);
+  node.appendChild(book);
+  return node;
+}
+
+/**
+ * Get a valid dicom book node.
+ *
+ * @returns {Node} A DOM node.
+ */
+function getValidBookNode() {
+  return getBookNode('PS3.7');
+}
+
+/**
+ * Get a fake table node.
+ *
+ * @param {string} label The table label.
+ * @param {string} captionText The table caption text.
+ * @returns {Node} A DOM node.
+ */
+function getTableNode(label, captionText) {
+  const table = document.createElement('table');
+  table.setAttribute('label', label);
+  const caption = document.createElement('caption');
+  const text = document.createTextNode(captionText);
+  caption.appendChild(text);
+  table.appendChild(caption);
+  return table;
+}
+
+/**
+ * Append a valid dicom table to an input node.
+ *
+ * @param {Node} node The node to append to.
+ * @returns {Node} The first table node appended to the input.
+ */
+function appendValidTableNodes(node) {
+  const validTable0 = getTableNode(
+    'E.1-1', 'Command Fields');
+  node.appendChild(validTable0);
+  node.appendChild(getTableNode(
+    'E.2-1', 'Retired Command Fields'));
+  return validTable0;
+}
+
 /**
  * Tests for {@link DicomXMLParser}.
+ *
  * @function module:tests/parser~DicomXMLParser
  */
 QUnit.test('Test DicomXMLParser.', function (assert) {
@@ -75,21 +141,6 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
     /Missing DICOM standard version prefix./,
     'Missing DICOM standard version prefix.');
 
-  // utility function
-  function getBookNode(label) {
-    const node = document.createElement('div');
-    const book = document.createElement('book');
-    const subtitle = document.createElement('subtitle');
-    subtitle.appendChild(
-      document.createTextNode('DICOM ' + label + ' 2020a -'));
-    book.setAttribute('label', label);
-    book.appendChild(subtitle);
-    node.appendChild(book);
-    return node;
-  }
-  function getValidBookNode() {
-    return getBookNode('PS3.7');
-  }
 
   // #03 unknown book label
   const node04 = getBookNode('PS3.66');
@@ -132,25 +183,6 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
   assert.raises(fbad12,
     /Empty node caption/,
     'no table node caption');
-
-  // utility function
-  function getTableNode(label, captionText) {
-    const table = document.createElement('table');
-    table.setAttribute('label', label);
-    const caption = document.createElement('caption');
-    const text = document.createTextNode(captionText);
-    caption.appendChild(text);
-    table.appendChild(caption);
-    return table;
-  }
-  function appendValidTableNodes(node) {
-    const validTable0 = getTableNode(
-      'E.1-1', 'Command Fields');
-    node.appendChild(validTable0);
-    node.appendChild(getTableNode(
-      'E.2-1', 'Retired Command Fields'));
-    return validTable0;
-  }
 
   // #13 table with bad caption
   const node13 = getValidBookNode();

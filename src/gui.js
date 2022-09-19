@@ -25,6 +25,7 @@ export class Gui {
 
 /**
  * Set the progress of the progressbar.
+ *
  * @param {Event} event A progress event.
  */
 function setProgress(event) {
@@ -37,6 +38,7 @@ function setProgress(event) {
 
 /**
  * Handle file upload change event.
+ *
  * @param {Event} event The file upload change event.
  */
 function onFileuploadChange(event) {
@@ -51,6 +53,7 @@ function onFileuploadChange(event) {
 
 /**
  * Handle parse button click event.
+ *
  * @param {Event} event The parse button click event.
  */
 function onParseButtonClick(event) {
@@ -128,8 +131,9 @@ function onParseButtonClick(event) {
 }
 
 /**
- * Format tags into a html element and append it to the 'output' div.
- * @param {Array} tags An array of DICOM tags.
+ * Format a parse result into a html element and append it to the 'output' div.
+ *
+ * @param {Array} result A parse result object array.
  */
 function showResult(result) {
   // append to page as text area
@@ -144,6 +148,8 @@ function showResult(result) {
 
 /**
  * Show an error result.
+ *
+ * @param {string|Event} error The error to display.
  */
 function showError(error) {
   console.error(error);
@@ -156,6 +162,9 @@ function showError(error) {
 
 /**
  * Append a text area to the ouput div.
+ *
+ * @param {string} name The name of text area.
+ * @param {object} content The result content.
  */
 function appendResult(name, content) {
   const div = document.getElementById('output');
@@ -262,7 +271,10 @@ function updateStandardSelect() {
 }
 
 /**
+ * Update the version links.
  *
+ * @param {string} version The dicom standard version.
+ * @param {string} partNumber The standard part number
  */
 function updateVersionLinks(version, partNumber) {
   const links = nema.getDicomPartLinks(partNumber)[version];
