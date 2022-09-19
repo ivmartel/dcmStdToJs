@@ -1,0 +1,37 @@
+{
+    "plugins": ["node_modules/jsdoc/plugins/markdown"],
+    "markdown": {
+      "idInHeadings": true
+    },
+    "source": {
+      "include": [
+        "src",
+        "tests"
+      ]
+    },
+    "opts": {
+      "recurse": true,
+      "readme": "readme.md",
+      "destination": "build/doc",
+      "template": "node_modules/clean-jsdoc-theme",
+      "package": "package.json",
+      "theme_opts": {
+        "title": "dcmStdToJs doc",
+        "footer": "<i>Documentation generated for dcmStdToJs v0.1.0.</i>",
+        "sections": [
+          "Namespaces",
+          "Classes",
+          "Externals",
+          "Modules"
+        ],
+        "menu": [
+          {
+            "title": "github",
+            "link": "https://github.com/ivmartel/dcmStdToJs",
+            "target": "_blank"
+          }
+        ],
+        "create_style": "ul {list-style-type: disc !important;} ul ul {list-style-type: circle !important;}"
+      }
+    }
+}

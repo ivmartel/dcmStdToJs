@@ -13,11 +13,14 @@
     "url": "git://github.com/ivmartel/dcmStdToJs.git"
   },
   "devDependencies": {
+    "clean-jsdoc-theme": "4.1.7",
     "eslint": "^8.23.1",
+    "eslint-plugin-jsdoc": "~39.3.3",
     "grunt": "^1.5.3",
     "grunt-cli": "^1.4.3",
     "grunt-contrib-connect": "^3.0.0",
     "grunt-contrib-watch": "^1.1.0",
+    "jsdoc": "^3.6.7",
     "karma": "^6.4.0",
     "karma-chrome-launcher": "^3.1.1",
     "karma-coverage": "^2.2.0",
@@ -26,8 +29,9 @@
   },
   "scripts": {
     "start": "grunt start",
-    "lint": "eslint 'src/**/*.js' 'tests/**/*.js' '*.js'",
+    "lint": "eslint -c '.eslint-full.js' 'src/**/*.js' 'tests/**/*.js' '*.js'",
     "test": "karma start ./karma.conf.js",
-    "test-ci": "karma start ./karma.conf.js --browsers ChromeHeadless --reporters progress,coverage --single-run"
+    "test-ci": "karma start ./karma.conf.js --browsers ChromeHeadless --reporters progress,coverage --single-run",
+    "doc": "jsdoc -c resources/doc/jsdoc.conf.json"
   }
 }

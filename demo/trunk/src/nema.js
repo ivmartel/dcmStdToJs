@@ -11,7 +11,8 @@ const dicomParts = ['03', '05', '06', '07'];
 
 /**
  * Get the list of DICOM standard parts.
- * @returns An array of parts
+ *
+ * @returns {Array} An array of parts
  */
 export function getDicomParts() {
   return dicomParts;
@@ -19,7 +20,8 @@ export function getDicomParts() {
 
 /**
  * Get the list of DICOM standard versions.
- * @returns An array of versions, ordered from most recent to older.
+ *
+ * @returns {Array} An array of versions, ordered from most recent to older.
  */
 export function getDicomVersions() {
   const keys = Object.keys(dicomVersions);
@@ -37,45 +39,43 @@ export function getDicomVersions() {
   return versions;
 }
 
-// reverse sort keys
+/**
+ * Sort keys.
+ *
+ * @param {string} a First string.
+ * @param {string} b Second string.
+ * @returns {number} Negative is a > b.
+ */
 function compare(a, b) {
   return parseInt(b, 10) - parseInt(a, 10);
 }
 
 /**
- * Get a list of DICOM versions associated to their resrouce link
- * @returns An object in the form of:
- * {
- *   2020a: {xml: %xmlLink%, html: %htmlLink%},
- *   ...
- * }
+ * Get a list of DICOM versions associated to their resrouce link.
+ *
+ * @param {string} partNumber The part number as a string.
+ * @returns {Array} An array of {xml, html} objects.
  */
 export function getDicomPartLinks(partNumber) {
   const versions = getDicomVersions();
   const links = {};
   for (let i = 0; i < versions.length; ++i) {
-    storeLink(links, versions[i], partNumber);
+    links[versions[i]] = {
+      'xml': getXmlLink(versions[i], partNumber),
+      'html': getHtmlLink(versions[i], partNumber),
+    };
   }
-  // add current
-  storeLink(links, 'current', partNumber);
   // return
   return links;
-}
-
-function storeLink(storage, version, pNumber) {
-  storage[version] = {
-    'xml': getXmlLink(version, pNumber),
-    'html': getHtmlLink(version, pNumber),
-  };
 }
 
 /**
  * Get the xml link to the standard.
  * Links go to github since nema does not publish standard with CORS
  *
- * @param {String} version The standard version.
- * @param {String} partNumber The standard part number as a string.
- * @returns The full link to the desired file.
+ * @param {string} version The standard version.
+ * @param {string} partNumber The standard part number as a string.
+ * @returns {string} The full link to the desired file.
  */
 function getXmlLink(version, partNumber) {
   const githubRoot = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard';
@@ -86,9 +86,9 @@ function getXmlLink(version, partNumber) {
 /**
  * Get the html link to the standard.
  *
- * @param {String} version The standard version.
- * @param {String} partNumber The standard part number as a string.
- * @returns The full link to the desired html.
+ * @param {string} version The standard version.
+ * @param {string} partNumber The standard part number as a string.
+ * @returns {string} The full link to the desired html.
  */
 function getHtmlLink(version, partNumber) {
   const nemaRoot = 'http://dicom.nema.org/medical/dicom';
