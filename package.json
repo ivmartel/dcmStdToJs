@@ -13,7 +13,7 @@
     "url": "git://github.com/ivmartel/dcmStdToJs.git"
   },
   "devDependencies": {
-    "clean-jsdoc-theme": "4.1.10",
+    "clean-jsdoc-theme": "4.1.12",
     "eslint": "^8.29.0",
     "eslint-plugin-jsdoc": "~39.6.4",
     "grunt": "^1.5.3",
