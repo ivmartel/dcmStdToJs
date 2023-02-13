@@ -15,7 +15,7 @@
   "devDependencies": {
     "clean-jsdoc-theme": "4.2.4",
     "eslint": "^8.33.0",
-    "eslint-plugin-jsdoc": "~39.8.0",
+    "eslint-plugin-jsdoc": "~40.0.0",
     "grunt": "^1.6.1",
     "grunt-cli": "^1.4.3",
     "grunt-contrib-connect": "^3.0.0",
