@@ -79,7 +79,7 @@ export function getDicomPartLinks(partNumber) {
  * @returns {string} The full link to the desired file.
  */
 function getXmlLink(version, partNumber) {
-  const githubRoot = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/master/resources/standard';
+  const githubRoot = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/main/resources/standard';
   const partFileName = 'part' + partNumber;
   return githubRoot + '/' + version + '/' + partFileName + '.xml';
 }
