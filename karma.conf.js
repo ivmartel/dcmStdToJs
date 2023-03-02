@@ -1,18 +1,19 @@
 // Karma configuration file, see link for more information
-// https://karma-runner.github.io/1.0/config/configuration-file.html
+// https://karma-runner.github.io/6.4/config/configuration-file.html
 
 module.exports = function (config) {
   config.set({
     basePath: '.',
-    frameworks: ['qunit'],
+    frameworks: ['qunit', 'webpack'],
     plugins: [
-      require('karma-qunit'),
-      require('karma-chrome-launcher'),
-      require('karma-coverage')
+      'karma-qunit',
+      'karma-chrome-launcher',
+      'karma-coverage',
+      'karma-webpack',
+      'karma-sourcemap-loader'
     ],
     files: [
-      {pattern: 'src/**/*.js', type: 'module'},
-      {pattern: 'tests/**/*.test.js', type: 'module'}
+      {pattern: './tests/**/*.test.js', watched: false}
     ],
     client: {
       clearContext: false,
@@ -22,19 +23,32 @@ module.exports = function (config) {
       }
     },
     preprocessors: {
-      'src/**/*.js': ['coverage']
+      'src/**/*.js': ['webpack', 'sourcemap'],
+      'tests/**/*.test.js': ['webpack']
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './build/coverage/dstj'),
+      dir: require('path').join(__dirname, './build/coverage'),
       reporters: [
         {type: 'html', subdir: 'report-html'},
-        {type: 'lcovonly', subdir: '.', file: 'report-lcovonly.txt'},
         {type: 'text-summary'}
       ]
     },
     reporters: ['progress'],
     logLevel: config.LOG_INFO,
     browsers: ['Chrome'],
-    restartOnFileChange: true
+    restartOnFileChange: true,
+    webpack: webpackConfig()
   });
 };
+
+/**
+ * Get the webpack config to pass to Karma.
+ *
+ * @returns {object} The config.
+ */
+function webpackConfig() {
+  const config = require('./webpack.dev.js');
+  delete config.entry;
+  delete config.output;
+  return config;
+}
