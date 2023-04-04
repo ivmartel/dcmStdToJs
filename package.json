@@ -15,7 +15,7 @@
   "browserslist": "> 0.25%, not dead",
   "devDependencies": {
     "@babel/core": "^7.21.4",
-    "@babel/preset-env": "^7.20.2",
+    "@babel/preset-env": "^7.21.4",
     "babel-loader": "^9.1.2",
     "babel-plugin-istanbul": "^6.1.1",
     "clean-jsdoc-theme": "4.2.7",
