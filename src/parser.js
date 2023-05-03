@@ -1101,8 +1101,8 @@ function tagPropertiesToObject(properties) {
   }
   // split (group,element)
   const geSplit = properties[0][0].split(',');
-  const group = '0x' + geSplit[0].substring(1, 5).toString();
-  const element = '0x' + geSplit[1].substring(0, 4).toString();
+  const group = geSplit[0].substring(1, 5).toString();
+  const element = geSplit[1].substring(0, 4).toString();
   // return
   return {
     group: group,
@@ -1337,10 +1337,10 @@ function adaptTagsForDwv(inputTags) {
 
   // add GenericGroupLength to groups
   for (const group of groups) {
-    if (group !== '0x0000' && group !== '0x0002') {
+    if (group !== '0000' && group !== '0002') {
       tags.push({
         group: group,
-        element: '0x0000',
+        element: '0000',
         keyword: 'GenericGroupLength',
         vr: 'UL',
         vm: '1'

@@ -210,8 +210,8 @@ QUnit.test('Test DicomXMLParser.', function (assert) {
   const table20 = appendValidTableNodes(node20);
   const row20 = table20.insertRow();
   const tag20 = {
-    group: '0x0004',
-    element: '0x1142',
+    group: '0004',
+    element: '1142',
     keyword: 'Specific​Character​Set​',
     vr: 'CS',
     vm: '1'
