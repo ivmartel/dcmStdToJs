@@ -1362,8 +1362,12 @@ function adaptTagsForDwv(inputTags) {
         } else if (vr === 'OB or OW') {
           // #modif "OB or OW" -> "ox"
           vr = 'ox';
-        } else if (vr === 'US or SS') {
-          // #modif "US or SS" -> "xs"
+        } else if (vr === 'US or OW') {
+          // #modif "US or OW" -> "xx"
+          vr = 'xx';
+        } else if (vr === 'US or SS' ||
+          vr === 'US or SS or OW') {
+          // #modif "US or SS" or "US or SS or OW" -> "xs"
           vr = 'xs';
         } else {
           console.warn('Unknown VR: \'' + vr +
