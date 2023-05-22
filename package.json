@@ -19,7 +19,7 @@
     "babel-loader": "^9.1.2",
     "babel-plugin-istanbul": "^6.1.1",
     "clean-jsdoc-theme": "4.2.7",
-    "css-loader": "^6.7.3",
+    "css-loader": "^6.7.4",
     "eslint": "^8.40.0",
     "eslint-plugin-jsdoc": "~44.2.4",
     "html-webpack-plugin": "^5.5.1",
