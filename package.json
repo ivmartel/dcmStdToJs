@@ -21,7 +21,7 @@
     "clean-jsdoc-theme": "4.2.9",
     "css-loader": "^6.8.1",
     "eslint": "^8.42.0",
-    "eslint-plugin-jsdoc": "~46.2.6",
+    "eslint-plugin-jsdoc": "~46.3.0",
     "html-webpack-plugin": "^5.5.3",
     "jsdoc": "^4.0.2",
     "karma": "^6.4.2",
