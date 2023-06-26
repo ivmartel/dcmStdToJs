@@ -3216,21 +3216,10 @@ istanbul-lib-coverage@^3.0.0, istanbul-lib-coverage@^3.2.0:
   resolved "https://registry.yarnpkg.com/istanbul-lib-coverage/-/istanbul-lib-coverage-3.2.0.tgz#189e7909d0a39fa5a3dfad5b03f71947770191d3"
   integrity sha512-eOeJ5BHCmHYvQK7xt9GkdHuzuCGS1Y6g9Gvnx3Ym33fz/HpLRYxiS0wHNr+m/MBC8B647Xt608vCDEvhl9c6Mw==
 
-istanbul-lib-instrument@^5.0.4:
+istanbul-lib-instrument@^5.0.4, istanbul-lib-instrument@^5.1.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/istanbul-lib-instrument/-/istanbul-lib-instrument-5.2.1.tgz#d10c8885c2125574e1c231cacadf955675e1ce3d"
   integrity sha512-pzqtp31nLv/XFOzXGuvhCb8qhjmTVo5vjVk19XE4CRlSWz0KoeJ3bw9XsA7nOp9YBf4qHjwBxkDzKcME/J29Yg==
-  dependencies:
-    "@babel/core" "^7.12.3"
-    "@babel/parser" "^7.14.7"
-    "@istanbuljs/schema" "^0.1.2"
-    istanbul-lib-coverage "^3.2.0"
-    semver "^6.3.0"
-
-istanbul-lib-instrument@^5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/istanbul-lib-instrument/-/istanbul-lib-instrument-5.1.0.tgz#7b49198b657b27a730b8e9cb601f1e1bff24c59a"
-  integrity sha512-czwUz525rkOFDJxfKK6mYfIs9zBKILyrZQxjz3ABhjQXhbhFsSbo1HW/BFcsDnfJYJWA6thRR5/TUY2qs5W99Q==
   dependencies:
     "@babel/core" "^7.12.3"
     "@babel/parser" "^7.14.7"
@@ -3377,10 +3366,10 @@ karma-chrome-launcher@^3.2.0:
   dependencies:
     which "^1.2.1"
 
-karma-coverage@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/karma-coverage/-/karma-coverage-2.2.0.tgz#64f838b66b71327802e7f6f6c39d569b7024e40c"
-  integrity sha512-gPVdoZBNDZ08UCzdMHHhEImKrw1+PAOQOIiffv1YsvxFhBjqvo/SVXNk4tqn1SYqX0BJZT6S/59zgxiBe+9OuA==
+karma-coverage@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/karma-coverage/-/karma-coverage-2.2.1.tgz#e1cc074f93ace9dc4fb7e7aeca7135879c2e358c"
+  integrity sha512-yj7hbequkQP2qOSb20GuNSIyE//PgJWHwC2IydLE6XRtsnaflv+/OSGNssPjobYUlhVVagy99TQpqUt3vAUG7A==
   dependencies:
     istanbul-lib-coverage "^3.2.0"
     istanbul-lib-instrument "^5.1.0"
