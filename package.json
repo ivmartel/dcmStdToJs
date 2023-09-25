@@ -30,7 +30,7 @@
     "karma-qunit": "^4.1.2",
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.0",
-    "qunit": "^2.19.4",
+    "qunit": "^2.20.0",
     "style-loader": "^3.3.3",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
