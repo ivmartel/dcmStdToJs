@@ -18,7 +18,7 @@
     "@babel/preset-env": "^7.23.2",
     "babel-loader": "^9.1.3",
     "babel-plugin-istanbul": "^6.1.1",
-    "clean-jsdoc-theme": "4.2.13",
+    "clean-jsdoc-theme": "4.2.14",
     "css-loader": "^6.8.1",
     "eslint": "^8.51.0",
     "eslint-plugin-jsdoc": "~46.8.2",
