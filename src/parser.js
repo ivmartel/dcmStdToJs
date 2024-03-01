@@ -1130,8 +1130,9 @@ function uidPropertiesToObject(properties, uidType) {
   // a 'UID keyword' column was added in 2020d, use len-2 instead of index
   if (properties[properties.length - 2][0].includes(uidType)) {
     uid = {
+      value: properties[0][0],
       name: properties[1][0],
-      value: properties[0][0]
+      keyword: properties[2][0]
     };
   }
   return uid;
