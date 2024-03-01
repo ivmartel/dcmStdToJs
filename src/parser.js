@@ -702,7 +702,8 @@ function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
   for (const value of values) {
     uid = uidPropertiesToObject(value, uidType);
     if (uid) {
-      uids[uid.value] = uid.name;
+      //uids[uid.value] = uid.name;
+      uids[uid.value] = uid.keyword;
     }
   }
   return uids;
