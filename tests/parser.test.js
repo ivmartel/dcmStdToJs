@@ -30,7 +30,7 @@ function getTagArray(tag) {
 /**
  * Get a fake dicom book DOM node.
  *
- * @param {string} label The dicom part label
+ * @param {string} label The dicom part label.
  * @returns {Node} A DOM node.
  */
 function getBookNode(label) {

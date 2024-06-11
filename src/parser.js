@@ -9,10 +9,10 @@ export class DicomXMLParser {
    * @param {Node} partNode The main DOM node.
    * @param {string} origin The origin of the node (optional).
    * @returns {object} An object containing:
-   * - name: a lael for the result
-   * - origin: the origin of the node
-   * - raw: the raw result
-   * - data: the adapted result as string
+   *   - name: a lael for the result,
+   *   - origin: the origin of the node,
+   *   - raw: the raw result,
+   *   - data: the adapted result as string.
    */
   parseNode(partNode, origin) {
     // get book node
@@ -64,8 +64,8 @@ export class DicomXMLParser {
 }
 
 /**
- * Parse a PS3.3 node: Information Object Definitions (IODs)
- * https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html
+ * Parse a PS3.3 node: Information Object Definitions (IODs).
+ * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html}.
  *
  * @param {Node} partNode The main DOM node.
  * @param {string} origin The origin of the node (optional).
@@ -126,8 +126,8 @@ function parsePs33Node(partNode, origin) {
 }
 
 /**
- * Parse a PS3.5 node: Data Structures and Encoding
- * https://dicom.nema.org/medical/dicom/current/output/chtml/part05/PS3.5.html
+ * Parse a PS3.5 node: Data Structures and Encoding.
+ * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part05/PS3.5.html}.
  *
  * @param {Node} partNode The main DOM node.
  * @param {string} origin The origin of the node (optional).
@@ -207,8 +207,8 @@ function parsePs35Node(partNode, origin, version) {
 }
 
 /**
- * Parse a PS3.6 node:  Data Dictionary
- * https://dicom.nema.org/medical/dicom/current/output/chtml/part06/PS3.6.html
+ * Parse a PS3.6 node: Data Dictionary.
+ * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part06/PS3.6.html}.
  *
  * @param {Node} partNode The main DOM node.
  * @param {string} origin The origin of the node (optional).
@@ -274,8 +274,8 @@ function parsePs36Node(partNode, origin) {
 }
 
 /**
- * Parse a PS3.7 node: Message Exchange
- * https://dicom.nema.org/medical/dicom/current/output/chtml/part07/PS3.7.html
+ * Parse a PS3.7 node: Message Exchange.
+ * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part07/PS3.7.html}.
  *
  * @param {Node} partNode The main DOM node.
  * @param {string} origin The origin of the node (optional).
@@ -307,8 +307,8 @@ function parsePs37Node(partNode, origin) {
 /**
  * Get a selector for an element with the input xml:id.
  * Looking for:
- * - <table label="l"> when the id starts with 'table_'
- * - <section label="l"> when the id starts with 'sect_'
+ *   - <table label="l"> when the id starts with 'table_',
+ *   - <section label="l"> when the id starts with 'sect_'.
  *
  * @param {string} xmlid The id to look for.
  * @returns {string} The selector.
@@ -327,7 +327,7 @@ function getSelector(xmlid) {
 
 /**
  * Get the 'linkend' value (an xml:id) of an input string.
- * Looking for: <xref linkend="sect_C.1-7">
+ * Looking for: <xref linkend="sect_C.1-7">.
  *
  * @param {string} str The input string.
  * @returns {string} The xml:id.
@@ -344,7 +344,7 @@ function getLinkend(str) {
 
 /**
  * Extract enum values from a string
- * (created by parseVariableListNode).
+ *   (created by parseVariableListNode).
  *
  * @param {string} str The string to extract the enum from.
  * @returns {object} An object containing the input string ('str')
@@ -352,7 +352,7 @@ function getLinkend(str) {
  *   the enum ('enum') if found.
  */
 function extractEnum(str) {
-  let result = {str: str};
+  const result = {str: str};
 
   // looks like: 'enum=ITEM0,ITEM1;'
   const start = str.indexOf('enum=');
@@ -381,7 +381,7 @@ function extractEnum(str) {
  *   the condition ('condition') if found.
  */
 function extractCondition(str) {
-  let result = {str: str};
+  const result = {str: str};
 
   const reqIndex = str.indexOf('Required if');
   if (reqIndex !== -1) {
@@ -629,7 +629,7 @@ function parseContentNode(paraNode, partNode) {
 }
 
 /**
- * Parse a DICOM standard XML VariableList node
+ * Parse a DICOM standard XML VariableList node.
  *
  * @param {Node} listNode A DOM list node.
  * @returns {string} The list values.
@@ -830,9 +830,9 @@ function parseVrTableNode(tableNode, partNode, expectedCaption) {
 
   for (const value of values) {
     // 'short' VR name
-    let vrName = value[0][0];
+    const vrName = value[0][0];
     // definition
-    let definition = value[1][0];
+    const definition = value[1][0];
     let type;
     for (const extractor of extractors) {
       type = extractor(definition);
@@ -910,7 +910,7 @@ function parseModulesFromList(list, partNode, fgModulesProperties) {
   return result;
 }
 
-let macros = {};
+const macros = {};
 
 /**
  * Parse a Information Entities (IE) modules DICOM standard XML node.
@@ -966,7 +966,7 @@ function parseModuleAttributesNode(node, partNode, expectedCaption, fgModules) {
       includeCase = true;
       attribute = [];
       const keys = Object.keys(fgModules);
-      for (let key of keys) {
+      for (const key of keys) {
         attribute = attribute.concat(fgModules[key]);
       }
     } else {
@@ -1158,7 +1158,7 @@ function moduleDefinitionPropertiesToObject(properties, usageRegex) {
   if (properties.length === 4) {
     startCol = 1;
   }
-  let moduleDef = {
+  const moduleDef = {
     module: properties[startCol][0],
     reference: properties[startCol + 1][0],
     usage: properties[startCol + 2][0]
@@ -1227,7 +1227,7 @@ function modulePropertiesToObject(properties, typeRegex) {
     throw new Error('Not the expected module values size: ' +
       properties.length);
   }
-  let module = {
+  const module = {
     name: properties[0][0],
     tag: properties[1][0],
     type: properties[2][0]
@@ -1292,9 +1292,9 @@ function modulePropertiesToObject(properties, typeRegex) {
 
 /**
  * Adapt tags:
- * - replace 'x' in groups and elements
- * - add GenericGroupLength to groups
- * - replace non single VRs
+ *   - replace 'x' in groups and elements,
+ *   - add GenericGroupLength to groups,
+ *   - replace non single VRs.
  *
  * @param {Array} inputTags An array of tags.
  * @returns {Array} The adapted tags as a new array.
@@ -1387,8 +1387,8 @@ function adaptTagsForDwv(inputTags) {
 
 /**
  * Adapt UIDs:
- * - replace '&amp;' in name with '&'
- * - remove comments in name: string after ':'
+ *   - replace '&amp;' in name with '&',
+ *   - remove comments in name: string after ':'.
  *
  * @param {object} inputUids An list of UIDs.
  * @returns {object} The adapted UIDs as a new list.

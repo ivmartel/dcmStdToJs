@@ -16,8 +16,8 @@ module.exports = merge(common, {
               [
                 '@babel/preset-env',
                 {
-                  'useBuiltIns': 'entry',
-                  'corejs': '3.22'
+                  useBuiltIns: 'entry',
+                  corejs: '3.22'
                 }
               ]
             ]

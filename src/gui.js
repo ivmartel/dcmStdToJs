@@ -98,11 +98,11 @@ function onParseButtonClick(event) {
   } else {
     // use selected version or default
     const dicomVersionsSelect = document.getElementById('dicomVersions');
-    let selectedVersion = dicomVersionsSelect.options[
+    const selectedVersion = dicomVersionsSelect.options[
       dicomVersionsSelect.selectedIndex
     ].value;
     const dicomPartsSelect = document.getElementById('dicomParts');
-    let selectedPart = dicomPartsSelect.options[
+    const selectedPart = dicomPartsSelect.options[
       dicomPartsSelect.selectedIndex
     ].value;
 
@@ -212,7 +212,7 @@ function appendResult(name, content) {
 }
 
 /**
- * Update standard select with available standard versions
+ * Update standard select with available standard versions.
  */
 function updateStandardSelect() {
   const versionSelect = document.getElementById('dicomVersions');
@@ -274,7 +274,7 @@ function updateStandardSelect() {
  * Update the version links.
  *
  * @param {string} version The dicom standard version.
- * @param {string} partNumber The standard part number
+ * @param {string} partNumber The standard part number.
  */
 function updateVersionLinks(version, partNumber) {
   const links = nema.getDicomPartLinks(partNumber)[version];

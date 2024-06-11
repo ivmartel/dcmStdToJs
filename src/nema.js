@@ -1,10 +1,10 @@
 // DICOM versions object
 // (only those published with this repo since NEMA does not do CORS...)
 const dicomVersions = {
-  '2016': ['a'],
-  '2018': ['a'],
-  '2020': ['a'],
-  '2022': ['a'],
+  2016: ['a'],
+  2018: ['a'],
+  2020: ['a'],
+  2022: ['a'],
 };
 
 // Supported DICOM parts
@@ -13,7 +13,7 @@ const dicomParts = ['03', '05', '06', '07'];
 /**
  * Get the list of DICOM standard parts.
  *
- * @returns {Array} An array of parts
+ * @returns {Array} An array of parts.
  */
 export function getDicomParts() {
   return dicomParts;
@@ -62,8 +62,8 @@ export function getDicomPartLinks(partNumber) {
   const links = {};
   for (let i = 0; i < versions.length; ++i) {
     links[versions[i]] = {
-      'xml': getXmlLink(versions[i], partNumber),
-      'html': getHtmlLink(versions[i], partNumber),
+      xml: getXmlLink(versions[i], partNumber),
+      html: getHtmlLink(versions[i], partNumber),
     };
   }
   // return
@@ -72,7 +72,7 @@ export function getDicomPartLinks(partNumber) {
 
 /**
  * Get the xml link to the standard.
- * Links go to github since nema does not publish standard with CORS
+ * Links go to github since nema does not publish standard with CORS.
  *
  * @param {string} version The standard version.
  * @param {string} partNumber The standard part number as a string.
