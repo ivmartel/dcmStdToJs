@@ -1,7 +1,10 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+import path from 'path';
+import {fileURLToPath} from 'url';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 
-module.exports = {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export const common = {
   entry: {
     app: './src/index.js',
   },
@@ -13,7 +16,14 @@ module.exports = {
   output: {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
+    library: {
+      type: 'module'
+    },
     clean: true,
+  },
+  experiments: {
+    // module is still experimental
+    outputModule: true
   },
   module: {
     rules: [

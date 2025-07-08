@@ -12,6 +12,8 @@
     "type": "git",
     "url": "git://github.com/ivmartel/dcmStdToJs.git"
   },
+  "type": "module",
+  "sideEffects": false,
   "browserslist": "> 0.25%, not dead",
   "devDependencies": {
     "@babel/core": "^7.28.0",
@@ -41,9 +43,9 @@
     "webpack-merge": "^6.0.1"
   },
   "scripts": {
-    "start": "webpack serve --config webpack.dev.js",
-    "build": "webpack --config webpack.prod.js",
-    "lint": "eslint -c 'eslint.config-full.mjs' 'src/**/*.js' 'tests/**/*.js' '*.js'",
+    "start": "webpack serve --config config/webpack.dev.js",
+    "build": "webpack --config config/webpack.prod.js",
+    "lint": "eslint -c config/eslint.config-full.js 'src/**/*.js' 'tests/**/*.js' '*.js'",
     "test": "karma start ./karma.conf.js",
     "test-ci": "karma start ./karma.conf.js --browsers ChromeHeadless --reporters progress,coverage --single-run",
     "doc": "jsdoc -c resources/doc/jsdoc.conf.json"

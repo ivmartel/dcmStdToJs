@@ -1,16 +1,10 @@
-const {merge} = require('webpack-merge');
-const common = require('./webpack.common.js');
-
-module.exports = merge(common, {
+export const webpackTest = {
   mode: 'development',
   devtool: 'inline-source-map',
-  devServer: {
-    static: './dist'
-  },
   module: {
     rules: [
       {
-        test: /\.m?js$/,
+        test: /\.js$/,
         exclude: /node_modules/,
         use: {
           // babel loader with istanbul
@@ -28,7 +22,7 @@ module.exports = merge(common, {
             plugins: ['istanbul']
           }
         }
-      }
+      },
     ]
   }
-});
+};
