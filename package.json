@@ -27,7 +27,7 @@
     "eslint": "^9.34.0",
     "eslint-plugin-jsdoc": "~54.1.1",
     "globals": "^16.3.0",
-    "html-webpack-plugin": "^5.6.3",
+    "html-webpack-plugin": "^5.6.4",
     "jsdoc": "^4.0.4",
     "karma": "^6.4.4",
     "karma-chrome-launcher": "^3.2.0",
