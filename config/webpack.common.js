@@ -10,7 +10,8 @@ export const common = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: 'index.html'
+      template: 'index.html',
+      scriptLoading: 'module'
     }),
   ],
   output: {
