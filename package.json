@@ -13,7 +13,6 @@
     "url": "git://github.com/ivmartel/dcmStdToJs.git"
   },
   "type": "module",
-  "sideEffects": false,
   "browserslist": "> 0.25%, not dead",
   "devDependencies": {
     "@babel/core": "^7.28.4",
