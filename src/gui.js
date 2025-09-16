@@ -88,6 +88,8 @@ function onParseButtonClick(event) {
       } catch (error) {
         showError(error);
       }
+      // clear
+      fileInputElement.value = '';
     };
     reader.onprogress = setProgress;
     reader.onloadend = setProgress;
