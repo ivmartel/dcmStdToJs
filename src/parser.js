@@ -256,15 +256,17 @@ function parsePs36Node(partNode, origin) {
     data: JSON.stringify(adaptUidsForDwv(uids), null, '  ')
   };
 
-  // SOPs
+  // standard SOPs class
   // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_A.html#table_A-1
   const sops = parseUidTableNode(
     partNode.querySelector(getSelector('table_A-1')),
     partNode,
     'UID Values',
-    'SOP');
+    'SOP Class',
+    new RegExp('^1.2.840.10008.5.1.4.1.1.')
+  );
   const sopsResults = {
-    name: 'SOP class and instance UIDs',
+    name: 'Standard SOP class',
     origin: origin,
     raw: sops,
     data: JSON.stringify(adaptUidsForDwv(sops), null, '  ')
@@ -693,15 +695,20 @@ function parseTagsTableNode(tableNode, partNode, expectedCaption) {
  * @param {Node} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption.
  * @param {string} uidType The UID type.
+ * @param {string} uidRegex The UID regex.
  * @returns {object} The list of transfer syntax UIDs.
  */
-function parseUidTableNode(tableNode, partNode, expectedCaption, uidType) {
+function parseUidTableNode(
+  tableNode, partNode, expectedCaption, uidType, uidRegex) {
+  if (typeof uidRegex === 'undefined') {
+    uidRegex = '';
+  }
   const values = parseTableNode(tableNode, partNode, expectedCaption);
   const uids = {};
   let uid = null;
   for (const value of values) {
     uid = uidPropertiesToObject(value, uidType);
-    if (uid) {
+    if (uid && uid.value.match(uidRegex)) {
       //uids[uid.value] = uid.name;
       uids[uid.value] = uid.keyword;
     }
