@@ -3963,10 +3963,10 @@ qs@6.13.0:
   dependencies:
     side-channel "^1.0.6"
 
-qunit@^2.24.1:
-  version "2.24.1"
-  resolved "https://registry.yarnpkg.com/qunit/-/qunit-2.24.1.tgz#03e39ec00824cc45cabcedf6d2603fedbc7c46af"
-  integrity sha512-Eu0k/5JDjx0QnqxsE1WavnDNDgL1zgMZKsMw/AoAxnsl9p4RgyLODyo2N7abZY7CEAnvl5YUqFZdkImzbgXzSg==
+qunit@^2.24.2:
+  version "2.24.2"
+  resolved "https://registry.yarnpkg.com/qunit/-/qunit-2.24.2.tgz#ed57fb417b686bcf30b8934a6814a7bf7e389f14"
+  integrity sha512-dWlYs+Q9AIDT3eHKgkpEpWrSjHjqTJNCAJr1tUo5bQuDMzlZvaqCz1bNZhqzNu41ibkIQ7b50S9y6IMlrrUfNQ==
   dependencies:
     commander "7.2.0"
     node-watch "0.7.3"
