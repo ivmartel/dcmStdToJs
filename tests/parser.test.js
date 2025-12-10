@@ -1,12 +1,10 @@
-import {DicomXMLParser} from '../src/parser.js';
+import {describe, expect, test} from 'vitest';
 
+import {DicomXMLParser} from '../src/parser.js';
 /**
  * Tests for the 'parser.js' file.
  */
 /** @module tests/parser */
-// Do not warn if these variables were not defined before.
-/* global QUnit */
-QUnit.module('parser');
 
 /**
  * Convert a tag into a string array.
@@ -91,144 +89,142 @@ function appendValidTableNodes(node) {
  *
  * @function module:tests/parser~DicomXMLParser
  */
-QUnit.test('Test DicomXMLParser.', function (assert) {
+describe('#DicomXMLParser', () => {
 
-  const parser = new DicomXMLParser();
+  test('throw when no book node', () => {
+    const parser = new DicomXMLParser();
+    const node = document.createElement('div');
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/No book node/);
+  });
 
-  // #00 no book node
-  const node00 = document.createElement('div');
-  const fbad00 = function () {
-    parser.parseNode(node00);
-  };
-  assert.raises(fbad00,
-    /No book node/,
-    'no book node');
+  test('throw when no book label', () => {
+    const parser = new DicomXMLParser();
+    const node = document.createElement('div');
+    const book = document.createElement('book');
+    node.appendChild(book);
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/No book label/);
+  });
 
-  // #01 no book label
-  const node01 = document.createElement('div');
-  const book01 = document.createElement('book');
-  node01.appendChild(book01);
-  const fbad01 = function () {
-    parser.parseNode(node01);
-  };
-  assert.raises(fbad01,
-    /No book label/,
-    'no book label');
+  test('throw when no book subtitle', () => {
+    const parser = new DicomXMLParser();
+    const node = document.createElement('div');
+    const book = document.createElement('book');
+    book.setAttribute('label', 'PS3.66');
+    node.appendChild(book);
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/No book subtitle/);
+  });
 
-  // #02 no book subtitle
-  const node02 = document.createElement('div');
-  const book02 = document.createElement('book');
-  book02.setAttribute('label', 'PS3.66');
-  node02.appendChild(book02);
-  const fbad02 = function () {
-    parser.parseNode(node02);
-  };
-  assert.raises(fbad02,
-    /No book subtitle/,
-    'no book subtitle');
+  test('throw when no dicom prefix', () => {
+    const parser = new DicomXMLParser();
+    const node = document.createElement('div');
+    const book = document.createElement('book');
+    const sub = document.createElement('subtitle');
+    book.setAttribute('label', 'PS3.66');
+    book.appendChild(sub);
+    node.appendChild(book);
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/Missing DICOM standard version prefix./);
+  });
 
-  // #03 no book subtitle
-  const node03 = document.createElement('div');
-  const book03 = document.createElement('book');
-  const sub03 = document.createElement('subtitle');
-  book03.setAttribute('label', 'PS3.66');
-  book03.appendChild(sub03);
-  node03.appendChild(book03);
-  const fbad03 = function () {
-    parser.parseNode(node03);
-  };
-  assert.raises(fbad03,
-    /Missing DICOM standard version prefix./,
-    'Missing DICOM standard version prefix.');
+  test('throw when unknown book label', () => {
+    const parser = new DicomXMLParser();
+    const node = getBookNode('PS3.66');
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/Unknown book label/);
+  });
 
+  test('throw when no table node', () => {
+    const parser = new DicomXMLParser();
+    const node = getValidBookNode();
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/No table node/);
+  });
 
-  // #03 unknown book label
-  const node04 = getBookNode('PS3.66');
-  const fbad04 = function () {
-    parser.parseNode(node04);
-  };
-  assert.raises(fbad04,
-    /Unknown book label/,
-    'unknown book label');
+  test('throw when bad table node', () => {
+    const parser = new DicomXMLParser();
+    const node = getValidBookNode();
+    const table = document.createElement('table');
+    table.setAttribute('label', '7-77');
+    node.appendChild(table);
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/No table node/);
+  });
 
-  // #10 no table node
-  const node10 = getValidBookNode();
-  const fbad10 = function () {
-    parser.parseNode(node10);
-  };
-  assert.raises(fbad10,
-    /No table node/,
-    'no table node');
+  test('throw when no table node caption', () => {
+    const parser = new DicomXMLParser();
+    const node = getValidBookNode();
+    const table = document.createElement('table');
+    table.setAttribute('label', 'E.1-1');
+    node.appendChild(table);
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/Empty node caption/);
+  });
 
-  // #11 table with bad label
-  const node11 = getValidBookNode();
-  const table11 = document.createElement('table');
-  table11.setAttribute('label', '7-77');
-  node11.appendChild(table11);
-  const fbad11 = function () {
-    parser.parseNode(node11);
-  };
-  assert.raises(fbad11,
-    /No table node/,
-    'bad table node');
+  test('throw when bad table node caption', () => {
+    const parser = new DicomXMLParser();
+    const node = getValidBookNode();
+    const table = getTableNode('E.1-1', 'ahahah');
+    node.appendChild(table);
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/The node caption is not the expected one/);
+  });
 
-  // #12 table with no caption
-  const node12 = getValidBookNode();
-  const table12 = document.createElement('table');
-  table12.setAttribute('label', 'E.1-1');
-  node12.appendChild(table12);
-  const fbad12 = function () {
-    parser.parseNode(node12);
-  };
-  assert.raises(fbad12,
-    /Empty node caption/,
-    'no table node caption');
+  test('throw when empty tags', () => {
+    const parser = new DicomXMLParser();
+    const node = getValidBookNode();
+    appendValidTableNodes(node);
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/Empty tags/);
+  });
 
-  // #13 table with bad caption
-  const node13 = getValidBookNode();
-  const table13 = getTableNode('E.1-1', 'ahahah');
-  node13.appendChild(table13);
-  const fbad13 = function () {
-    parser.parseNode(node13);
-  };
-  assert.raises(fbad13,
-    /The node caption is not the expected one/,
-    'bad table node caption');
-
-  // #14 table with no content
-  const node14 = getValidBookNode();
-  appendValidTableNodes(node14);
-  const fbad14 = function () {
-    parser.parseNode(node14);
-  };
-  assert.raises(fbad14,
-    /Empty tags/,
-    'empty tags');
-
-  // #20 table with content
-  const node20 = getValidBookNode();
-  const table20 = appendValidTableNodes(node20);
-  const row20 = table20.insertRow();
-  const tag20 = {
-    group: '0004',
-    element: '1142',
-    keyword: 'Specific​Character​Set​',
-    vr: 'CS',
-    vm: '1'
-  };
-  const tagArray20 = getTagArray(tag20);
-  for (let i = 0; i < tagArray20.length; ++i) {
-    const cell20 = row20.insertCell();
-    const para20 = document.createElement('para');
-    const text20 = document.createTextNode(tagArray20[i]);
-    para20.appendChild(text20);
-    cell20.appendChild(para20);
-  }
-  node20.appendChild(table20);
-  const result20 = parser.parseNode(node20);
-  // can't make object comparison work...
-  // assert.propEqual(result10[0], tag10, 'Table node with content.');
-  assert.equal(result20.raw[0].toString(), tag20.toString(),
-    'table node with content');
+  test('correct parse', () => {
+    const parser = new DicomXMLParser();
+    const node = getValidBookNode();
+    const table = appendValidTableNodes(node);
+    const row = table.insertRow();
+    const tag = {
+      group: '0004',
+      element: '1142',
+      keyword: 'Specific​Character​Set​',
+      vr: 'CS',
+      vm: '1'
+    };
+    const tagArray = getTagArray(tag);
+    for (let i = 0; i < tagArray.length; ++i) {
+      const cell = row.insertCell();
+      const para = document.createElement('para');
+      const text = document.createTextNode(tagArray[i]);
+      para.appendChild(text);
+      cell.appendChild(para);
+    }
+    node.appendChild(table);
+    const result = parser.parseNode(node);
+    // can't make object comparison work...
+    // assert.propEqual(result10[0], tag10, 'Table node with content.');
+    expect(result.raw[0].toString()).toEqual(tag.toString());
+  });
 
 });
