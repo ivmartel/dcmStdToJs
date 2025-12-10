@@ -26,7 +26,7 @@ jobs:
     - name: Run lint
       run: yarn run lint
     - name: Run tests
-      run: yarn run test-ci --coverage --verbose
+      run: yarn run test-ci
     - name: Build (if tag or main branch)
       if: env.IS_PUSH_MAIN == 'true' || env.IS_PUSH_TAG == 'true'
       run: yarn run build
