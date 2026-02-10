@@ -45,7 +45,7 @@ export class DicomXMLParser {
     };
 
 
-    let result = null;
+    let result;
 
     if (label === 'PS3.3') {
       result = parsePs33Node(partNode, origin);
@@ -316,7 +316,7 @@ function parsePs37Node(partNode, origin) {
  * @returns {string} The selector.
  */
 function getSelector(xmlid) {
-  let prefix = '';
+  let prefix;
   if (xmlid.startsWith('table_')) {
     prefix = 'table[label=\'' + xmlid.substring(6);
   } else if (xmlid.startsWith('sect_')) {
@@ -678,9 +678,8 @@ function cleanString(str) {
 function parseTagsTableNode(tableNode, partNode, expectedCaption) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
   const tags = [];
-  let tag = null;
   for (const value of values) {
-    tag = tagPropertiesToObject(value);
+    const tag = tagPropertiesToObject(value);
     if (tag) {
       tags.push(tag);
     }
@@ -705,9 +704,8 @@ function parseUidTableNode(
   }
   const values = parseTableNode(tableNode, partNode, expectedCaption);
   const uids = {};
-  let uid = null;
   for (const value of values) {
-    uid = uidPropertiesToObject(value, uidType);
+    const uid = uidPropertiesToObject(value, uidType);
     if (uid && uid.value.match(uidRegex)) {
       //uids[uid.value] = uid.name;
       uids[uid.value] = uid.keyword;
@@ -871,7 +869,7 @@ function parseVrTableNode(tableNode, partNode, expectedCaption) {
 function parseModuleListNode(node, partNode, expectedCaption, usageRegex) {
   const values = parseTableNode(node, partNode, expectedCaption);
   const modules = [];
-  let module = null;
+  let module;
   for (const value of values) {
     module = moduleDefinitionPropertiesToObject(value, usageRegex);
     if (module) {

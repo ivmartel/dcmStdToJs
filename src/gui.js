@@ -170,7 +170,7 @@ function showError(error) {
  */
 function appendResult(name, content) {
   const div = document.getElementById('output');
-  let contentString = '';
+  let contentString;
 
   if (typeof content.name !== 'undefined') {
     const para = document.createElement('p');
