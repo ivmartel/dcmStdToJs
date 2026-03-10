@@ -20,7 +20,7 @@
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@vitest/coverage-v8": "^4.0.18",
-    "babel-loader": "^10.0.0",
+    "babel-loader": "^10.1.1",
     "babel-plugin-istanbul": "^7.0.1",
     "clean-jsdoc-theme": "4.3.0",
     "css-loader": "^7.1.4",
