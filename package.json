@@ -16,7 +16,7 @@
   "browserslist": "> 0.25%, not dead",
   "devDependencies": {
     "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@vitest/coverage-v8": "^4.1.1",
