@@ -21,7 +21,6 @@ export default merge(common, {
               [
                 '@babel/preset-env',
                 {
-                  useBuiltIns: 'entry',
                   corejs: '3.22'
                 }
               ]
