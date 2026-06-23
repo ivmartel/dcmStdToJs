@@ -17,14 +17,6 @@ export default merge(common, {
           // babel loader with istanbul
           loader: 'babel-loader',
           options: {
-            presets: [
-              [
-                '@babel/preset-env',
-                {
-                  corejs: '3.22'
-                }
-              ]
-            ],
             plugins: ['istanbul']
           }
         }
