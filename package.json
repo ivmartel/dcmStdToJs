@@ -19,7 +19,7 @@
     "@babel/preset-env": "^8.0.2",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.10",
     "babel-loader": "^10.1.1",
     "babel-plugin-istanbul": "^8.0.0",
     "clean-jsdoc-theme": "5.0.6",
