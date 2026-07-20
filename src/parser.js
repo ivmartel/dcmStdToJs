@@ -6,8 +6,8 @@ export class DicomXMLParser {
   /**
    * Parse a DICOM standard xml node.
    *
-   * @param {Node} partNode The main DOM node.
-   * @param {string} origin The origin of the node (optional).
+   * @param {Document} partNode The main DOM node.
+   * @param {string} [origin] Optional origin of the node.
    * @returns {object} An object containing:
    *   - name: a lael for the result,
    *   - origin: the origin of the node,
@@ -67,8 +67,8 @@ export class DicomXMLParser {
  * Parse a PS3.3 node: Information Object Definitions (IODs).
  * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html}.
  *
- * @param {Node} partNode The main DOM node.
- * @param {string} origin The origin of the node (optional).
+ * @param {Document} partNode The main DOM node.
+ * @param {string} [origin] Optional node origin.
  * @returns {object} A result object {name, origin, raw, data}.
  */
 function parsePs33Node(partNode, origin) {
@@ -129,8 +129,8 @@ function parsePs33Node(partNode, origin) {
  * Parse a PS3.5 node: Data Structures and Encoding.
  * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part05/PS3.5.html}.
  *
- * @param {Node} partNode The main DOM node.
- * @param {string} origin The origin of the node (optional).
+ * @param {Document} partNode The main DOM node.
+ * @param {string} origin The origin of the node.
  * @param {object} version The version of the standard.
  * @returns {object} A result object {name, origin, raw, data}.
  */
@@ -139,6 +139,7 @@ function parsePs35Node(partNode, origin, version) {
   // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html#table_6.2-1
   const vrs = parseVrTableNode(
     partNode.querySelector(getSelector('table_6.2-1')),
+    undefined,
     'DICOM Value Representations');
 
   const vrsNames = Object.keys(vrs);
@@ -210,8 +211,8 @@ function parsePs35Node(partNode, origin, version) {
  * Parse a PS3.6 node: Data Dictionary.
  * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part06/PS3.6.html}.
  *
- * @param {Node} partNode The main DOM node.
- * @param {string} origin The origin of the node (optional).
+ * @param {Document} partNode The main DOM node.
+ * @param {string} [origin] Optional node origin.
  * @returns {object} A result object {name, origin, raw, data}.
  */
 function parsePs36Node(partNode, origin) {
@@ -279,8 +280,8 @@ function parsePs36Node(partNode, origin) {
  * Parse a PS3.7 node: Message Exchange.
  * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part07/PS3.7.html}.
  *
- * @param {Node} partNode The main DOM node.
- * @param {string} origin The origin of the node (optional).
+ * @param {Document} partNode The main DOM node.
+ * @param {string} [origin] Optional node origin.
  * @returns {object} A result object {name, origin, raw, data}.
  */
 function parsePs37Node(partNode, origin) {
@@ -437,7 +438,7 @@ function getCompare(property) {
  * Get a multi compare function for a list of object properties.
  *
  * @param {Array} properties The list of object properties to sort by.
- * @returns {Function} A compare function.
+ * @returns {function(object, object): number} A compare function.
  */
 function getMultiCompare(properties) {
   return function (a, b) {
@@ -456,9 +457,9 @@ function getMultiCompare(properties) {
 /**
  * Parse a DICOM standard XML table node.
  *
- * @param {Node} tableNode A DOM table node.
- * @param {Node} partNode The main DOM node.
- * @param {string|undefined} expectedCaption Optional expected table caption.
+ * @param {Element} tableNode A DOM table node.
+ * @param {Document} partNode The main DOM node.
+ * @param {string|undefined} [expectedCaption] Optional expected table caption.
  * @returns {Array} The table property values.
  */
 function parseTableNode(tableNode, partNode, expectedCaption) {
@@ -484,9 +485,9 @@ function parseTableNode(tableNode, partNode, expectedCaption) {
 /**
  * Check a node caption.
  *
- * @param {Node} node A DOM node.
+ * @param {Element} node A DOM node.
  * @param {string} expectedCaption The expected node caption.
- * @param {boolean} isEqualCheck Bool to perform equal or include
+ * @param {boolean} [isEqualCheck] Optional bool to perform equal or include
  *   caption text check.
  */
 function checkNodeCaption(node, expectedCaption, isEqualCheck) {
@@ -524,8 +525,8 @@ function checkNodeCaption(node, expectedCaption, isEqualCheck) {
 /**
  * Parse a DICOM standard XML table row node.
  *
- * @param {Node} trNode A DOM row node.
- * @param {Node} partNode The main DOm node.
+ * @param {Element} trNode A DOM row node.
+ * @param {Document} partNode The main DOm node.
  * @returns {Array} The row property values.
  */
 function parseTrNode(trNode, partNode) {
@@ -543,8 +544,8 @@ function parseTrNode(trNode, partNode) {
 /**
  * Parse a DICOM standard XML table row cell node.
  *
- * @param {Node} tdNode A DOM cell node.
- * @param {Node} partNode The main DOM node.
+ * @param {Element} tdNode A DOM cell node.
+ * @param {Document} partNode The main DOM node.
  * @returns {Array} The cell property values.
  */
 function parseTdNode(tdNode, partNode) {
@@ -553,7 +554,7 @@ function parseTdNode(tdNode, partNode) {
   if (nodes) {
     for (const node of nodes) {
       // type 1 (elements) to avoid #text between elements
-      if (node.nodeType === 1) {
+      if (node instanceof Element) {
         if (node.nodeName === 'variablelist') {
           properties.push(parseVariableListNode(node));
         } else {
@@ -570,8 +571,8 @@ function parseTdNode(tdNode, partNode) {
  * Parse a DICOM standard XML table row cell content node,
  * mainly para and note.
  *
- * @param {Node} paraNode A DOM para node.
- * @param {Node} partNode The main DOM node.
+ * @param {Element} paraNode A DOM para node.
+ * @param {Document} partNode The main DOM node.
  * @returns {string} The para value.
  */
 function parseContentNode(paraNode, partNode) {
@@ -579,11 +580,11 @@ function parseContentNode(paraNode, partNode) {
   const nodes = paraNode.childNodes;
   if (nodes) {
     for (const node of nodes) {
-      if (node.nodeType === 1) {
+      if (node instanceof Element) {
         // type 1: element
         if (node.nodeName === 'xref') {
           // just keep linkend for xref
-          content += 'linkend="' + node.attributes.linkend.value + '"';
+          content += 'linkend="' + node.getAttribute('linkend') + '"';
         } else {
           content += parseContentNode(node, partNode);
         }
@@ -610,7 +611,7 @@ function parseContentNode(paraNode, partNode) {
       const nodes = subSection.childNodes;
       if (nodes) {
         for (const node of nodes) {
-          if (node.nodeName === 'variablelist') {
+          if (node instanceof Element && node.nodeName === 'variablelist') {
             if (!foundTermsList) {
               foundTermsList = true;
               content = content.replace(match[0], parseVariableListNode(node));
@@ -633,7 +634,7 @@ function parseContentNode(paraNode, partNode) {
 /**
  * Parse a DICOM standard XML VariableList node.
  *
- * @param {Node} listNode A DOM list node.
+ * @param {Element} listNode A DOM list node.
  * @returns {string} The list values.
  */
 function parseVariableListNode(listNode) {
@@ -670,8 +671,8 @@ function cleanString(str) {
 /**
  * Parse a DICOM standard XML tags table node.
  *
- * @param {Node} tableNode A DOM table node.
- * @param {Node} partNode The main DOM node.
+ * @param {Element} tableNode A DOM table node.
+ * @param {Document} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption.
  * @returns {Array} The list of DICOM tags objects.
  */
@@ -690,17 +691,17 @@ function parseTagsTableNode(tableNode, partNode, expectedCaption) {
 /**
  * Parse a DICOM standard XML UIDs table node.
  *
- * @param {Node} tableNode A DOM table node.
- * @param {Node} partNode The main DOM node.
+ * @param {Element} tableNode A DOM table node.
+ * @param {Document} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption.
  * @param {string} uidType The UID type.
- * @param {string} uidRegex The UID regex.
+ * @param {RegExp} [uidRegex] Optional UID regex.
  * @returns {object} The list of transfer syntax UIDs.
  */
 function parseUidTableNode(
   tableNode, partNode, expectedCaption, uidType, uidRegex) {
   if (typeof uidRegex === 'undefined') {
-    uidRegex = '';
+    uidRegex = new RegExp('');
   }
   const values = parseTableNode(tableNode, partNode, expectedCaption);
   const uids = {};
@@ -815,10 +816,10 @@ function floatWordVrTypeExtractor(str) {
 /**
  * Parse a VR 32bit VL DICOM standard XML node.
  *
- * @param {Node} tableNode The content node.
- * @param {Node} partNode The main DOM node.
+ * @param {Element} tableNode The content node.
+ * @param {Document} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption root.
- * @returns {Array} The list of VRs.
+ * @returns {object} The map of VR name to type.
  */
 function parseVrTableNode(tableNode, partNode, expectedCaption) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
@@ -860,10 +861,10 @@ function parseVrTableNode(tableNode, partNode, expectedCaption) {
  * Parse a module list DICOM standard XML node:
  *   can be an IOD modules list or a functional group macros.
  *
- * @param {Node} node The content node.
- * @param {Node} partNode The main DOM node.
+ * @param {Element} node The content node.
+ * @param {Document} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption.
- * @param {string} usageRegex Optional usage selection regex.
+ * @param {RegExp} [usageRegex] Optional usage selection regex.
  * @returns {Array} The list of IOD modules.
  */
 function parseModuleListNode(node, partNode, expectedCaption, usageRegex) {
@@ -883,10 +884,10 @@ function parseModuleListNode(node, partNode, expectedCaption, usageRegex) {
  * Get modules from a modules definition list.
  *
  * @param {Array} list The IOD module list.
- * @param {Node} partNode The main DOM node.
- * @param {object} fgModulesProperties Optional functional group
+ * @param {Document} partNode The main DOM node.
+ * @param {object} [fgModulesProperties] Optional functional group
  *   modules properties, undefined to parse a functional group.
- * @returns {Array} The modules array.
+ * @returns {object} The map of module name to module attributes.
  */
 function parseModulesFromList(list, partNode, fgModulesProperties) {
   const result = {};
@@ -898,7 +899,7 @@ function parseModulesFromList(list, partNode, fgModulesProperties) {
     const sectNode = partNode.querySelector(getSelector(xmlid));
     for (const node of sectNode.childNodes) {
       // stop at first table
-      if (node.nodeName === 'table') {
+      if (node instanceof Element && node.nodeName === 'table') {
         let name = moduleName;
         if (typeof fgModulesProperties === 'undefined') {
           name += ' Macro';
@@ -920,8 +921,8 @@ const macros = {};
 /**
  * Parse a Information Entities (IE) modules DICOM standard XML node.
  *
- * @param {Node} node The content node.
- * @param {Node} partNode The main DOM node.
+ * @param {Element} node The content node.
+ * @param {Document} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption.
  * @param {object} fgModules A list of functional group modules.
  * @returns {Array} The list of ....
@@ -1036,7 +1037,7 @@ function parseModuleAttributesNode(node, partNode, expectedCaption, fgModules) {
 /**
  * Parse a VR 32bit VL DICOM standard XML node.
  *
- * @param {Node} node The content node.
+ * @param {Element} node The content node.
  * @param {string} expectedCaptionRoot The expected node caption root.
  * @returns {Array} The list VRs.
  */
@@ -1063,7 +1064,7 @@ function parseVrCaptionNode(node, expectedCaptionRoot) {
 /**
  * Parse a Character Set VR DICOM standard XML node.
  *
- * @param {Node} node The content node.
+ * @param {Element} node The content node.
  * @returns {Array} The list of VRs.
  */
 function parseCharSetVrNode(node) {
@@ -1149,7 +1150,7 @@ function uidPropertiesToObject(properties, uidType) {
  * Objectify IOD modules properties.
  *
  * @param {Array} properties The IOD module properties.
- * @param {string} usageRegex Optional usage selection regex.
+ * @param {RegExp} [usageRegex] Optional usage selection regex.
  * @returns {object} A IOD module object.
  */
 function moduleDefinitionPropertiesToObject(properties, usageRegex) {
@@ -1198,7 +1199,7 @@ function moduleDefinitionPropertiesToObject(properties, usageRegex) {
  * Objectify modules properties.
  *
  * @param {Array} properties The module properties.
- * @param {string} typeRegex Optional type selection regex.
+ * @param {RegExp} [typeRegex] Optional type selection regex.
  * @returns {object} A module object.
  */
 function modulePropertiesListToObject(properties, typeRegex) {
@@ -1223,7 +1224,7 @@ function modulePropertiesListToObject(properties, typeRegex) {
  * Objectify modules properties.
  *
  * @param {Array} properties The module properties.
- * @param {string} typeRegex Optional type selection regex.
+ * @param {RegExp} [typeRegex] Optional type selection regex.
  * @returns {object} A module object.
  */
 function modulePropertiesToObject(properties, typeRegex) {

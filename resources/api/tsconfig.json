@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "node10",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "types": [],
+    "declaration": true,
+    "allowJs": true,
+    "checkJs": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": true,
+    "strict": false,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "esModuleInterop": true,
+    "outDir": "../../build/types"
+  },
+  "files": ["../../src/index.js"]
+}
