@@ -1,7 +1,5 @@
-import {Gui} from './gui.js';
-import './style.css';
+import {DicomXMLParser} from './parser.js';
 
-// setup
-const gui = new Gui();
-gui.setup();
-gui.onDOMContentLoaded();
+export {
+  DicomXMLParser
+};

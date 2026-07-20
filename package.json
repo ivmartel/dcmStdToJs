@@ -40,6 +40,7 @@
   "scripts": {
     "start": "webpack serve --config config/webpack.dev.js",
     "build": "webpack --config config/webpack.prod.js",
+    "build-demo": "webpack --config config/webpack.demo.js",
     "lint": "eslint -c config/eslint.config-full.js 'src/**/*.js' 'tests/**/*.js' '*.js'",
     "test": "vitest",
     "test-ci": "vitest --coverage",

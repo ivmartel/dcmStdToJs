@@ -1,21 +1,14 @@
 import path from 'path';
 import {fileURLToPath} from 'url';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const common = {
   entry: {
-    app: './src/index.js',
+    dcmstdtojs: './src/index.js',
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: 'index.html',
-      scriptLoading: 'module'
-    }),
-  ],
   output: {
-    filename: '[name].bundle.js',
+    filename: '[name].min.js',
     path: path.resolve(__dirname, '../dist'),
     library: {
       type: 'module'
@@ -26,12 +19,4 @@ export const common = {
     // module is still experimental
     outputModule: true
   },
-  module: {
-    rules: [
-      {
-        test: /\.css$/i,
-        use: ['style-loader', 'css-loader']
-      }
-    ]
-  }
 };

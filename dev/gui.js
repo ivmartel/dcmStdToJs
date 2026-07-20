@@ -1,5 +1,5 @@
-import {DicomXMLParser} from './parser.js';
-import * as nema from './nema.js';
+import {DicomXMLParser} from '../src/parser.js';
+import * as nema from '../src/nema.js';
 
 /**
  * GUI classe.

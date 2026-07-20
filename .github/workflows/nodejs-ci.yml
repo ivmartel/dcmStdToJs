@@ -27,9 +27,11 @@ jobs:
       run: yarn run lint
     - name: Run tests
       run: yarn run test-ci
-    - name: Build (if tag or main branch)
-      if: env.IS_PUSH_MAIN == 'true' || env.IS_PUSH_TAG == 'true'
+    - name: Build
       run: yarn run build
+    - name: Prepare for deploy (if tag or main branch)
+      if: env.IS_PUSH_MAIN == 'true' || env.IS_PUSH_TAG == 'true'
+      run: yarn run build-demo
     - name: Push to gh-pages (if tag or main branch)
       if: env.IS_PUSH_MAIN == 'true' || env.IS_PUSH_TAG == 'true'
       run: |
@@ -42,7 +44,7 @@ jobs:
         git config user.name github-actions
         git checkout gh-pages
         rm -Rf $DEPLOY_DIR$ALL
-        cp -Rf ./dist/* $DEPLOY_DIR
+        cp -Rf ./build/demo/* $DEPLOY_DIR
         git add -A $DEPLOY_DIR
         git diff-index --quiet HEAD ||
           git commit -m "CI run ${{ github.run_number }} pushed to gh-pages"
