@@ -29,11 +29,10 @@ export function getDicomVersions() {
   keys.sort(compare);
   // create version strings
   const versions = [];
-  for (let i = 0; i < keys.length; ++i) {
-    const majorVersion = keys[i];
+  for (const majorVersion of keys) {
     const minorVersions = dicomVersions[majorVersion];
-    for (let j = 0; j < minorVersions.length; ++j) {
-      versions.push(majorVersion + minorVersions[j]);
+    for (const minorVersion of minorVersions) {
+      versions.push(majorVersion + minorVersion);
     }
   }
   // return
@@ -60,10 +59,10 @@ function compare(a, b) {
 export function getDicomPartLinks(partNumber) {
   const versions = getDicomVersions();
   const links = {};
-  for (let i = 0; i < versions.length; ++i) {
-    links[versions[i]] = {
-      xml: getXmlLink(versions[i], partNumber),
-      html: getHtmlLink(versions[i], partNumber),
+  for (const version of versions) {
+    links[version] = {
+      xml: getXmlLink(version, partNumber),
+      html: getHtmlLink(version, partNumber),
     };
   }
   // return
