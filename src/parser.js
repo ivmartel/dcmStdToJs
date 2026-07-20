@@ -9,7 +9,7 @@ export class DicomXMLParser {
    * @param {Document} partNode The main DOM node.
    * @param {string} [origin] Optional origin of the node.
    * @returns {object} An object containing:
-   *   - name: a lael for the result,
+   *   - name: a label for the result,
    *   - origin: the origin of the node,
    *   - raw: the raw result,
    *   - data: the adapted result as string.
