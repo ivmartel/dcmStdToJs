@@ -221,7 +221,7 @@ describe('#DicomXMLParser', () => {
       cell.appendChild(para);
     }
     node.appendChild(table);
-    const result = parser.parseNode(node);
+    const result = parser.parseNode(node)[0];
     // can't make object comparison work...
     // assert.propEqual(result10[0], tag10, 'Table node with content.');
     expect(result.raw[0].toString()).toEqual(tag.toString());
