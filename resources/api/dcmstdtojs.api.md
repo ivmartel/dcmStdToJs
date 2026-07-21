@@ -5,8 +5,32 @@
 ```ts
 
 // @public
+export class DicomParseResult {
+    data: string;
+    name: string;
+    origin: string;
+    raw: DicomTag[] | DicomUID[];
+}
+
+// @public
+export class DicomTag {
+    element: string;
+    group: string;
+    keyword: string;
+    vm: string;
+    vr: string;
+}
+
+// @public
+export class DicomUID {
+    keyword: string;
+    name: string;
+    value: string;
+}
+
+// @public
 export class DicomXMLParser {
-    parseNode(partNode: Document, origin?: string): object;
+    parseNode(partNode: Document, origin?: string): DicomParseResult[];
 }
 
 // (No @packageDocumentation comment for this package)

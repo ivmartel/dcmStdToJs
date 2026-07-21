@@ -1,4 +1,70 @@
 /**
+ * DICOM parse result class.
+ */
+export class DicomParseResult {
+  /**
+   * @type {string}
+   */
+  name;
+  /**
+   * @type {string}
+   */
+  origin;
+  /**
+   * @type {DicomTag[]|DicomUID[]}
+   */
+  raw;
+  /**
+   * @type {string}
+   */
+  data;
+}
+
+/**
+ * DICOM tag class.
+ */
+export class DicomTag {
+  /**
+   * @type {string}
+   */
+  group;
+  /**
+   * @type {string}
+   */
+  element;
+  /**
+   * @type {string}
+   */
+  keyword;
+  /**
+   * @type {string}
+   */
+  vr;
+  /**
+   * @type {string}
+   */
+  vm;
+}
+
+/**
+ * DICOM UID class.
+ */
+export class DicomUID {
+  /**
+   * @type {string}
+   */
+  name;
+  /**
+   * @type {string}
+   */
+  keyword;
+  /**
+   * @type {string}
+   */
+  value;
+}
+
+/**
  * DICOM xml parser.
  */
 export class DicomXMLParser {
@@ -8,11 +74,7 @@ export class DicomXMLParser {
    *
    * @param {Document} partNode The main DOM node.
    * @param {string} [origin] Optional origin of the node.
-   * @returns {object} An object containing:
-   *   - name: a label for the result,
-   *   - origin: the origin of the node,
-   *   - raw: the raw result,
-   *   - data: the adapted result as string.
+   * @returns {DicomParseResult[]} Parse results.
    */
   parseNode(partNode, origin) {
     // get book node
@@ -216,6 +278,7 @@ function parsePs35Node(partNode, origin, version) {
  * @returns {object} A result object {name, origin, raw, data}.
  */
 function parsePs36Node(partNode, origin) {
+  /** @type {DicomTag[]} */
   let tags36 = [];
   // 0002: DICOM File Meta Elements
   // https://dicom.nema.org/medical/dicom/current/output/chtml/part06/chapter_7.html#table_7-1
@@ -240,7 +303,7 @@ function parsePs36Node(partNode, origin) {
     name: 'DICOM Tags',
     origin: origin,
     raw: tags36,
-    data: stringifyTags(adaptTagsForDwv(tags36))
+    data: JSON.stringify(simplifyTags(adaptTagsForDwv(tags36)), null, '  ')
   };
 
   // transfer syntax
@@ -254,7 +317,7 @@ function parsePs36Node(partNode, origin) {
     name: 'Transfer syntax UIDs',
     origin: origin,
     raw: uids,
-    data: JSON.stringify(adaptUidsForDwv(uids), null, '  ')
+    data: JSON.stringify(simplifyUids(adaptUidsForDwv(uids)), null, '  ')
   };
 
   // standard SOPs class
@@ -270,7 +333,7 @@ function parsePs36Node(partNode, origin) {
     name: 'Standard SOP class',
     origin: origin,
     raw: sops,
-    data: JSON.stringify(adaptUidsForDwv(sops), null, '  ')
+    data: JSON.stringify(simplifyUids(adaptUidsForDwv(sops)), null, '  ')
   };
 
   return [tagsResults, uidsResults, sopsResults];
@@ -303,7 +366,7 @@ function parsePs37Node(partNode, origin) {
     name: 'DICOM tags group 0000',
     origin: origin,
     raw: tags37,
-    data: stringifyTags(adaptTagsForDwv(tags37))
+    data: JSON.stringify(simplifyTags(adaptTagsForDwv(tags37)), null, '  ')
   };
 }
 
@@ -674,7 +737,7 @@ function cleanString(str) {
  * @param {Element} tableNode A DOM table node.
  * @param {Document} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption.
- * @returns {Array} The list of DICOM tags objects.
+ * @returns {DicomTag[]} The list of DICOM tags objects.
  */
 function parseTagsTableNode(tableNode, partNode, expectedCaption) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);
@@ -696,7 +759,8 @@ function parseTagsTableNode(tableNode, partNode, expectedCaption) {
  * @param {string} expectedCaption The expected node caption.
  * @param {string} uidType The UID type.
  * @param {RegExp} [uidRegex] Optional UID regex.
- * @returns {object} The list of transfer syntax UIDs.
+ * @returns {DicomUID[]} The list of
+ *   transfer syntax UIDs.
  */
 function parseUidTableNode(
   tableNode, partNode, expectedCaption, uidType, uidRegex) {
@@ -704,12 +768,11 @@ function parseUidTableNode(
     uidRegex = new RegExp('');
   }
   const values = parseTableNode(tableNode, partNode, expectedCaption);
-  const uids = {};
+  const uids = [];
   for (const value of values) {
     const uid = uidPropertiesToObject(value, uidType);
     if (uid && uid.value.match(uidRegex)) {
-      //uids[uid.value] = uid.name;
-      uids[uid.value] = uid.keyword;
+      uids.push(uid);
     }
   }
   return uids;
@@ -1097,8 +1160,8 @@ function parseCharSetVrNode(node) {
 /**
  * Parse tag values as array and return a tag object.
  *
- * @param {Array} properties A tag row array of properties (length=6).
- * @returns {object} A tag object: {group, element, keyword, vr, vm}.
+ * @param {string[]} properties A tag row array of properties (length=6).
+ * @returns {DicomTag} The tag object.
  */
 function tagPropertiesToObject(properties) {
   // check length (then only use the first element of each item)
@@ -1123,9 +1186,9 @@ function tagPropertiesToObject(properties) {
 /**
  * Parse UID values as array and return a UID object.
  *
- * @param {Array} properties A UID row array of properties (length=6).
+ * @param {string[]} properties A UID row array of properties (length=6).
  * @param {string} uidType The UID type.
- * @returns {object} A tag object: {group, element, keyword, vr, vm}.
+ * @returns {DicomUID} The UID object.
  */
 function uidPropertiesToObject(properties, uidType) {
   // check length (then only use the first element of each item)
@@ -1302,8 +1365,8 @@ function modulePropertiesToObject(properties, typeRegex) {
  *   - add GenericGroupLength to groups,
  *   - replace non single VRs.
  *
- * @param {Array} inputTags An array of tags.
- * @returns {Array} The adapted tags as a new array.
+ * @param {DicomTag[]} inputTags An array of tags.
+ * @returns {DicomTag[]} The adapted tags as a new array.
  */
 function adaptTagsForDwv(inputTags) {
   // check tags
@@ -1396,22 +1459,21 @@ function adaptTagsForDwv(inputTags) {
  *   - replace '&amp;' in name with '&',
  *   - remove comments in name: string after ':'.
  *
- * @param {object} inputUids An list of UIDs.
- * @returns {object} The adapted UIDs as a new list.
+ * @param {DicomUID[]} inputUids An list of UIDs.
+ * @returns {DicomUID[]} The adapted UIDs as a new list.
  */
 function adaptUidsForDwv(inputUids) {
-  const keys = Object.keys(inputUids);
-  for (const key of keys) {
-    let name = inputUids[key];
+  for (const uid of inputUids) {
+    let name = uid.name;
     // replace '&amp'
     if (name.includes('&amp;')) {
       name = name.replace('&amp;', '&');
-      inputUids[key] = name;
+      uid.name = name;
     }
     // remove comment
     if (name.includes(':')) {
       const pos = name.indexOf(':');
-      inputUids[key] = name.substring(0, pos);
+      uid.name = name.substring(0, pos);
     }
   }
 
@@ -1419,56 +1481,35 @@ function adaptUidsForDwv(inputUids) {
 }
 
 /**
- * Stringify a tags array.
+ * Simplify tags.
  *
- * @param {Array} tags The tags array.
- * @returns {string} A stringified version of the input array.
+ * @param {DicomTag[]} tags The tags.
+ * @returns {Record<string, Record<string, string[]>} Simplified tags indexed by
+ *   group then element.
  */
-function stringifyTags(tags) {
-  // check tags
-  if (!tags) {
-    throw new Error('No tags.');
-  }
-  if (tags.length === 0) {
-    throw new Error('Empty tags.');
-  }
-
-  // tabulation
-  const tab = '  ';
-  const quote = '\'';
-  // result text
-  let text = '{\n';
-
-  let group = '';
-  for (let i = 0; i < tags.length; ++i) {
-    const tag = tags[i];
-    let isFirstOfgroup = false;
-    // start group section
-    if (tag.group !== group) {
-      isFirstOfgroup = true;
-      // close previous
-      if (i !== 0) {
-        text += '\n' + tab + '},\n';
-      }
-      // start new
-      group = tag.group;
-      text += tab + quote + tag.group + quote + ': {\n';
+function simplifyTags(tags) {
+  const res = {};
+  for (const tag of tags) {
+    if (typeof res[tag.group] === 'undefined') {
+      res[tag.group] = {};
     }
-
-    // tag
-    let tagText = isFirstOfgroup ? '' : ',\n';
-    tagText += tab + tab +
-      quote + tag.element + quote + ': [' +
-      quote + tag.vr + quote + ', ' +
-      quote + tag.vm + quote + ', ' +
-      quote + tag.keyword + quote + ']';
-    text += tagText;
+    res[tag.group][tag.element] = [
+      tag.vr, tag.vm, tag.keyword
+    ];
   }
+  return res;
+}
 
-  // last group line
-  text += '\n' + tab + '}\n';
-  // last line
-  text += '}\n';
-
-  return text;
+/**
+ * Simplify uids.
+ *
+ * @param {DicomUID{}} uids The UIDs.
+ * @returns {Record<string, string>} Simplified uids indexed by value.
+ */
+function simplifyUids(uids) {
+  const res = {};
+  for (const uid of uids) {
+    res[uid.value] = uid.keyword;
+  }
+  return res;
 }
