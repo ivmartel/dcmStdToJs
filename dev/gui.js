@@ -139,12 +139,8 @@ function onParseButtonClick(event) {
  */
 function showResult(result) {
   // append to page as text area
-  if (Array.isArray(result)) {
-    for (let i = 0; i < result.length; ++i) {
-      appendResult('result-' + i, result[i]);
-    }
-  } else {
-    appendResult('result-0', result);
+  for (let i = 0; i < result.length; ++i) {
+    appendResult('result-' + i, result[i]);
   }
 }
 

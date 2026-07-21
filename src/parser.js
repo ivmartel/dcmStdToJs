@@ -131,7 +131,7 @@ export class DicomXMLParser {
  *
  * @param {Document} partNode The main DOM node.
  * @param {string} [origin] Optional node origin.
- * @returns {object} A result object {name, origin, raw, data}.
+ * @returns {DicomParseResult[]} A result object {name, origin, raw, data}.
  */
 function parsePs33Node(partNode, origin) {
   const result = [];
@@ -194,7 +194,7 @@ function parsePs33Node(partNode, origin) {
  * @param {Document} partNode The main DOM node.
  * @param {string} origin The origin of the node.
  * @param {object} version The version of the standard.
- * @returns {object} A result object {name, origin, raw, data}.
+ * @returns {DicomParseResult[]} The parse results.
  */
 function parsePs35Node(partNode, origin, version) {
   // VRs
@@ -275,7 +275,7 @@ function parsePs35Node(partNode, origin, version) {
  *
  * @param {Document} partNode The main DOM node.
  * @param {string} [origin] Optional node origin.
- * @returns {object} A result object {name, origin, raw, data}.
+ * @returns {DicomParseResult[]} The parse results.
  */
 function parsePs36Node(partNode, origin) {
   /** @type {DicomTag[]} */
@@ -345,7 +345,7 @@ function parsePs36Node(partNode, origin) {
  *
  * @param {Document} partNode The main DOM node.
  * @param {string} [origin] Optional node origin.
- * @returns {object} A result object {name, origin, raw, data}.
+ * @returns {DicomParseResult[]} The parse result.
  */
 function parsePs37Node(partNode, origin) {
   let tags37 = [];
@@ -362,12 +362,12 @@ function parsePs37Node(partNode, origin) {
     partNode,
     'Retired Command Fields'));
 
-  return {
+  return [{
     name: 'DICOM tags group 0000',
     origin: origin,
     raw: tags37,
     data: JSON.stringify(simplifyTags(adaptTagsForDwv(tags37)), null, '  ')
-  };
+  }];
 }
 
 /**
@@ -480,9 +480,9 @@ function extractCondition(str) {
 }
 
 /**
- * Get a compare function for a specific object property.
+ * Get a compare function for a specific string property.
  *
- * @param {string} property The object property to sort by.
+ * @param {string} property The string property to sort by.
  * @returns {Function} A compare function.
  */
 function getCompare(property) {
@@ -500,7 +500,7 @@ function getCompare(property) {
 /**
  * Get a multi compare function for a list of object properties.
  *
- * @param {Array} properties The list of object properties to sort by.
+ * @param {string[]} properties The list of string properties to sort by.
  * @returns {function(object, object): number} A compare function.
  */
 function getMultiCompare(properties) {
@@ -522,8 +522,8 @@ function getMultiCompare(properties) {
  *
  * @param {Element} tableNode A DOM table node.
  * @param {Document} partNode The main DOM node.
- * @param {string|undefined} [expectedCaption] Optional expected table caption.
- * @returns {Array} The table property values.
+ * @param {string} [expectedCaption] Optional expected table caption.
+ * @returns {string[][][]} The table property values.
  */
 function parseTableNode(tableNode, partNode, expectedCaption) {
   // check node
@@ -590,7 +590,7 @@ function checkNodeCaption(node, expectedCaption, isEqualCheck) {
  *
  * @param {Element} trNode A DOM row node.
  * @param {Document} partNode The main DOm node.
- * @returns {Array} The row property values.
+ * @returns {string[][]} The row property values.
  */
 function parseTrNode(trNode, partNode) {
   const properties = [];
@@ -609,7 +609,7 @@ function parseTrNode(trNode, partNode) {
  *
  * @param {Element} tdNode A DOM cell node.
  * @param {Document} partNode The main DOM node.
- * @returns {Array} The cell property values.
+ * @returns {string[]} The cell property values.
  */
 function parseTdNode(tdNode, partNode) {
   const properties = [];
@@ -1102,7 +1102,7 @@ function parseModuleAttributesNode(node, partNode, expectedCaption, fgModules) {
  *
  * @param {Element} node The content node.
  * @param {string} expectedCaptionRoot The expected node caption root.
- * @returns {Array} The list VRs.
+ * @returns {string[]} The list VRs.
  */
 function parseVrCaptionNode(node, expectedCaptionRoot) {
   // check node
@@ -1128,7 +1128,7 @@ function parseVrCaptionNode(node, expectedCaptionRoot) {
  * Parse a Character Set VR DICOM standard XML node.
  *
  * @param {Element} node The content node.
- * @returns {Array} The list of VRs.
+ * @returns {string[]} The list of VRs.
  */
 function parseCharSetVrNode(node) {
   // check node
@@ -1160,7 +1160,7 @@ function parseCharSetVrNode(node) {
 /**
  * Parse tag values as array and return a tag object.
  *
- * @param {string[]} properties A tag row array of properties (length=6).
+ * @param {string[][]} properties A tag row array of properties (length=6).
  * @returns {DicomTag} The tag object.
  */
 function tagPropertiesToObject(properties) {
@@ -1186,7 +1186,7 @@ function tagPropertiesToObject(properties) {
 /**
  * Parse UID values as array and return a UID object.
  *
- * @param {string[]} properties A UID row array of properties (length=6).
+ * @param {string[][]} properties A UID row array of properties (length=6).
  * @param {string} uidType The UID type.
  * @returns {DicomUID} The UID object.
  */
@@ -1212,7 +1212,7 @@ function uidPropertiesToObject(properties, uidType) {
 /**
  * Objectify IOD modules properties.
  *
- * @param {Array} properties The IOD module properties.
+ * @param {string[][]} properties The IOD module properties.
  * @param {RegExp} [usageRegex] Optional usage selection regex.
  * @returns {object} A IOD module object.
  */
@@ -1261,7 +1261,7 @@ function moduleDefinitionPropertiesToObject(properties, usageRegex) {
 /**
  * Objectify modules properties.
  *
- * @param {Array} properties The module properties.
+ * @param {string[]} properties The module properties.
  * @param {RegExp} [typeRegex] Optional type selection regex.
  * @returns {object} A module object.
  */
