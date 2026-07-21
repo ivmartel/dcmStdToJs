@@ -1321,8 +1321,8 @@ function adaptTagsForDwv(inputTags) {
    * @returns {string} The updated string.
    */
   function replaceXs(str) {
-    str = str.replace(/xxxxx/g, 'x0004');
-    str = str.replace(/xxxx/g, 'x001');
+    str = str.replace(/xxxx/g, '0004');
+    str = str.replace(/xxx/g, '001');
     str = str.replace(/xx/g, '00');
     return str;
   }
