@@ -1484,10 +1484,11 @@ function adaptUidsForDwv(inputUids) {
  * Simplify tags.
  *
  * @param {DicomTag[]} tags The tags.
- * @returns {Record<string, Record<string, string[]>} Simplified tags indexed by
- *   group then element.
+ * @returns {Record<string, Record<string, string[]>>} Simplified tags
+ *   indexed by group then element.
  */
 function simplifyTags(tags) {
+  /** @type {Record<string, Record<string, string[]>>} */
   const res = {};
   for (const tag of tags) {
     if (typeof res[tag.group] === 'undefined') {
@@ -1503,10 +1504,11 @@ function simplifyTags(tags) {
 /**
  * Simplify uids.
  *
- * @param {DicomUID{}} uids The UIDs.
+ * @param {DicomUID[]} uids The UIDs.
  * @returns {Record<string, string>} Simplified uids indexed by value.
  */
 function simplifyUids(uids) {
+  /** @type {Record<string, string>} */
   const res = {};
   for (const uid of uids) {
     res[uid.value] = uid.keyword;
