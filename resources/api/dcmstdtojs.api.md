@@ -5,11 +5,28 @@
 ```ts
 
 // @public
+export class DicomModule {
+    attributes: DicomModuleAttribute[];
+    name: string;
+}
+
+// @public
+export class DicomModuleAttribute {
+    condition: string;
+    desc: string;
+    enum: string;
+    items: DicomModuleAttribute[];
+    name: string;
+    tag: string;
+    type: string;
+}
+
+// @public
 export class DicomParseResult {
     data: string;
     name: string;
     origin: string;
-    raw: DicomTag[] | DicomUID[];
+    raw: DicomTag[] | DicomUID[] | DicomModule[];
 }
 
 // @public

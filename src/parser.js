@@ -11,7 +11,7 @@ export class DicomParseResult {
    */
   origin;
   /**
-   * @type {DicomTag[]|DicomUID[]}
+   * @type {DicomTag[]|DicomUID[]|DicomModule[]}
    */
   raw;
   /**
@@ -62,6 +62,54 @@ export class DicomUID {
    * @type {string}
    */
   value;
+}
+
+/**
+ * DICOM Module class.
+ */
+export class DicomModule {
+  /**
+   * @type {string}
+   */
+  name;
+  /**
+   * @type {DicomModuleAttribute[]}
+   */
+  attributes;
+}
+
+/**
+ * DICOM Module attribute class.
+ */
+export class DicomModuleAttribute {
+  /**
+   * @type {string}
+   */
+  name;
+  /**
+   * @type {string}
+   */
+  type;
+  /**
+   * @type {string}
+   */
+  tag;
+  /**
+   * @type {string}
+   */
+  enum;
+  /**
+   * @type {string}
+   */
+  condition;
+  /**
+   * @type {string}
+   */
+  desc;
+  /**
+   * @type {DicomModuleAttribute[]}
+   */
+  items;
 }
 
 /**
@@ -181,7 +229,7 @@ function parsePs33Node(partNode, origin) {
       name: iod.name + ' IOD Modules',
       origin: origin,
       raw: modules,
-      data: JSON.stringify(modules, null, '  ')
+      data: JSON.stringify(simplifyModules(modules), null, '  ')
     });
   }
   return result;
@@ -1263,24 +1311,27 @@ function moduleDefinitionPropertiesToObject(properties, usageRegex) {
  *
  * @param {string[]} properties The module properties.
  * @param {RegExp} [typeRegex] Optional type selection regex.
- * @returns {object} A module object.
+ * @returns {DicomModule[]} A module attribute object.
  */
 function modulePropertiesListToObject(properties, typeRegex) {
+  const modules = [];
   const keys = Object.keys(properties);
-  const result = {};
   for (const key of keys) {
-    const modules = [];
+    const atts = [];
     for (const mod of properties[key]) {
-      const module = modulePropertiesToObject(mod, typeRegex);
-      if (module) {
-        modules.push(module);
+      const attributes = modulePropertiesToObject(mod, typeRegex);
+      if (attributes) {
+        atts.push(attributes);
       }
     }
-    if (modules.length !== 0) {
-      result[key] = modules;
+    if (atts.length !== 0) {
+      modules.push({
+        name: key,
+        attributes: atts
+      });
     }
   }
-  return result;
+  return modules;
 }
 
 /**
@@ -1288,7 +1339,7 @@ function modulePropertiesListToObject(properties, typeRegex) {
  *
  * @param {Array} properties The module properties.
  * @param {RegExp} [typeRegex] Optional type selection regex.
- * @returns {object} A module object.
+ * @returns {DicomModuleAttribute} A module attribute object.
  */
 function modulePropertiesToObject(properties, typeRegex) {
   // check length (then only use the first element of each item)
@@ -1296,42 +1347,43 @@ function modulePropertiesToObject(properties, typeRegex) {
     throw new Error('Not the expected module values size: ' +
       properties.length);
   }
-  const module = {
-    name: properties[0][0],
-    tag: properties[1][0],
-    type: properties[2][0]
-  };
+
+  const name = properties[0][0];
+  const tag = properties[1][0];
+  const type = properties[2][0];
 
   // Type property:
   // - 1: Required; 1C: Type 1 with condition;
   // - 2: Required, Empty if Unknown; 2C: Type 2 with condition;
   // - 3: Optional
   // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_7.4.html
-  if (module.type !== '1' && module.type !== '1C' &&
-    module.type !== '2' && module.type !== '2C' &&
-    module.type !== '3') {
-    console.warn('Unexpected module type: ' + module.type);
+  if (type !== '1' && type !== '1C' &&
+    type !== '2' && type !== '2C' &&
+    type !== '3') {
+    console.warn('Unexpected module type: ' + type);
   }
 
   // type filter
   if (typeof typeRegex !== 'undefined' &&
-    module.type.match(typeRegex) === null) {
+    type.match(typeRegex) === null) {
     return null;
   }
 
   // description
   let desc = '';
+  let enumValues;
+  let condition;
   for (let i = 0; i < properties[3].length; ++i) {
     // extract enum
     const extract0 = extractEnum(properties[3][i]);
     if (typeof extract0.enum !== 'undefined') {
-      module.enum = extract0.enum;
+      enumValues = extract0.enum;
     }
     if (extract0.str.length !== 0) {
       // extract condition
       const extract1 = extractCondition(extract0.str);
       if (typeof extract1.condition !== 'undefined') {
-        module.condition = extract1.condition;
+        condition = extract1.condition;
       }
       // keep what's left
       if (extract1.str.length !== 0) {
@@ -1342,21 +1394,29 @@ function modulePropertiesToObject(properties, typeRegex) {
       }
     }
   }
-  module.desc = desc;
 
   // include
+  let items;
   if (properties.length === 5) {
-    module.items = [];
+    items = [];
     const subProperties = properties[4];
     for (const subProps of subProperties) {
       const subModule = modulePropertiesToObject(subProps, typeRegex);
       if (subModule) {
-        module.items.push(subModule);
+        items.push(subModule);
       }
     }
   }
 
-  return module;
+  return {
+    name,
+    tag,
+    type,
+    enum: enumValues,
+    condition,
+    desc,
+    items
+  };
 }
 
 /**
@@ -1512,6 +1572,22 @@ function simplifyUids(uids) {
   const res = {};
   for (const uid of uids) {
     res[uid.value] = uid.keyword;
+  }
+  return res;
+}
+
+/**
+ * Simplify modules.
+ *
+ * @param {DicomModule[]} modules The modules.
+ * @returns {Record<string, DicomModule>} Simplified modules
+ *  indexed by value.
+ */
+function simplifyModules(modules) {
+  /** @type {Record<string, DicomModule>} */
+  const res = {};
+  for (const module of modules) {
+    res[module.name] = module;
   }
   return res;
 }
