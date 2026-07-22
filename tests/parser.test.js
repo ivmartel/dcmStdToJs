@@ -129,13 +129,33 @@ describe('#DicomXMLParser', () => {
     const node = document.createElement('div');
     const book = document.createElement('book');
     const sub = document.createElement('subtitle');
-    book.setAttribute('label', 'PS3.66');
+    const label = 'PS3.66';
+    book.setAttribute('label', label);
+    sub.appendChild(
+      document.createTextNode('DICOMx ' + label + ' 2020a -'));
     book.appendChild(sub);
     node.appendChild(book);
     const parseNode = function () {
       parser.parseNode(node);
     };
     expect(parseNode).toThrow(/Missing DICOM standard version prefix./);
+  });
+
+  test('throw when no dicom version', () => {
+    const parser = new DicomXMLParser();
+    const node = document.createElement('div');
+    const book = document.createElement('book');
+    const sub = document.createElement('subtitle');
+    const label = 'PS3.66';
+    book.setAttribute('label', label);
+    sub.appendChild(
+      document.createTextNode('DICOM ' + label + ' test'));
+    book.appendChild(sub);
+    node.appendChild(book);
+    const parseNode = function () {
+      parser.parseNode(node);
+    };
+    expect(parseNode).toThrow(/Missing DICOM standard version./);
   });
 
   test('throw when unknown book label', () => {

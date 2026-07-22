@@ -1,3 +1,4 @@
+import {getStdInfo, getStdVersion} from './genericParser.js';
 import {parsePs33Node} from './moduleParser.js';
 import {parsePs35Node} from './vrParser.js';
 import {
@@ -47,42 +48,20 @@ export class DicomXMLParser {
    * @returns {DicomParseResult[]} Parse results.
    */
   parseNode(partNode, origin) {
-    // get book node
-    const book = partNode.querySelector('book');
-    if (!book) {
-      throw new Error('No book node.');
+    // check info
+    const {label, subtitle} = getStdInfo(partNode);
+    // check version
+    const version = getStdVersion(label, subtitle);
+    if (typeof version === 'undefined') {
+      throw new Error('Undefined DICOM standard version.');
     }
-    // get book label
-    const label = book.getAttribute('label');
-    if (!label) {
-      throw new Error('No book label.');
-    }
-
-    // get version
-    // 'DICOM PS3.5 2020a - ...'
-    const subtitle = book.querySelector('subtitle');
-    if (!subtitle) {
-      throw new Error('No book subtitle.');
-    }
-    const prefix = 'DICOM ' + label;
-    if (!subtitle.innerHTML.startsWith(prefix)) {
-      throw new Error('Missing DICOM standard version prefix.');
-    }
-    const endIndex = subtitle.innerHTML.indexOf('-');
-    const versionStr =
-      subtitle.innerHTML.substring(prefix.length, endIndex).trim();
-    const version = {
-      year: parseInt(versionStr.substring(0, 4), 10),
-      letter: versionStr.substring(4)
-    };
-
 
     let result;
 
     if (label === 'PS3.3') {
       result = parsePs33Node(partNode, origin);
     } else if (label === 'PS3.5') {
-      result = parsePs35Node(partNode, origin, version);
+      result = parsePs35Node(partNode, origin);
     } else if (label === 'PS3.6') {
       const resTags = parsePs36TagsNode(partNode, origin);
       const resUids = parsePs36UIDNode(partNode, origin);

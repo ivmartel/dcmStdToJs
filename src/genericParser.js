@@ -249,3 +249,67 @@ export function checkNodeCaption(node, expectedCaption, isEqualCheck) {
     }
   }
 }
+
+/**
+ * Get DICOM standard info.
+ *
+ * @param {Document} partNode The main DOM node.
+ * @returns {{label, subtitle}} The standard info.
+ */
+export function getStdInfo(partNode) {
+  // get book node
+  const book = partNode.querySelector('book');
+  if (!book) {
+    throw new Error('No book node.');
+  }
+  // get book label
+  const label = book.getAttribute('label');
+  if (!label) {
+    throw new Error('No book label.');
+  }
+  if (label.length === 0) {
+    throw new Error('Empty book label');
+  }
+  // get book subtitle
+  const subtitleEl = book.querySelector('subtitle');
+  if (!subtitleEl) {
+    throw new Error('No book subtitle.');
+  }
+  const subtitle = subtitleEl.innerHTML;
+  if (subtitle.length === 0) {
+    throw new Error('Empty book subtitle');
+  }
+
+  return {label, subtitle};
+}
+
+/**
+ * Get DICOM standard version.
+ *
+ * @param {string} label The doc label.
+ * @param {string} subtitle The doc subtitle.
+ * @returns {{year, letter}} The standard version.
+ */
+export function getStdVersion(label, subtitle) {
+  // get version
+  // 'DICOM PS3.5 2020a - ...'
+  const prefix = 'DICOM ' + label;
+  if (!subtitle.startsWith(prefix)) {
+    throw new Error('Missing DICOM standard version prefix.');
+  }
+  const endIndex = subtitle.indexOf('-');
+  let versionStr;
+  if (endIndex !== -1) {
+    versionStr =
+      subtitle.substring(prefix.length, endIndex).trim();
+  }
+  if (typeof versionStr === 'undefined' ||
+    versionStr.length === 0) {
+    throw new Error('Missing DICOM standard version.');
+  }
+
+  return {
+    year: parseInt(versionStr.substring(0, 4), 10),
+    letter: versionStr.substring(4)
+  };
+}

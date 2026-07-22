@@ -1,7 +1,9 @@
 import {
   getSelector,
   checkNodeCaption,
-  parseTableNode
+  parseTableNode,
+  getStdInfo,
+  getStdVersion
 } from './genericParser.js';
 
 /**
@@ -14,10 +16,9 @@ import {
  *
  * @param {Document} partNode The main DOM node.
  * @param {string} origin The origin of the node.
- * @param {object} version The version of the standard.
  * @returns {DicomParseResult[]} The parse results.
  */
-export function parsePs35Node(partNode, origin, version) {
+export function parsePs35Node(partNode, origin) {
   // VRs
   // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html#table_6.2-1
   const vrs = parseVrTableNode(
@@ -47,6 +48,8 @@ export function parsePs35Node(partNode, origin, version) {
   // - before 2019e: 'Data Element with Explicit VR of OB, OD...'
   // - >= 2019e: 'Data Element with Explicit VR other than as shown
   //   in Table 7.1-2'
+  const {label, subtitle} = getStdInfo(partNode);
+  const version = getStdVersion(label, subtitle);
   let isBefore2019e = true;
   if (version.year > 2019 ||
     (version.year === 2019 && version.letter >= 'e')) {
