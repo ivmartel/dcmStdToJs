@@ -42,7 +42,7 @@ export function parsePs36UIDNode(partNode, origin) {
     'UID Values',
     'Transfer Syntax');
   const uidsResults = {
-    name: 'Transfer syntax UIDs',
+    name: 'DICOM Transfer syntax UIDs',
     origin: origin,
     raw: uids,
     data: JSON.stringify(simplifyUids(adaptUidsForDwv(uids)), null, '  ')
@@ -58,7 +58,7 @@ export function parsePs36UIDNode(partNode, origin) {
     new RegExp('^1.2.840.10008.5.1.4.1.1.')
   );
   const sopsResults = {
-    name: 'Standard SOP class',
+    name: 'DICOM Standard SOP class',
     origin: origin,
     raw: sops,
     data: JSON.stringify(simplifyUids(adaptUidsForDwv(sops)), null, '  ')

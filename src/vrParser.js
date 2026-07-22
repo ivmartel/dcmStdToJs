@@ -36,7 +36,7 @@ export function parsePs35Node(partNode, origin) {
   }
 
   const vrsResult = {
-    name: 'VRs',
+    name: 'DICOM VRs',
     origin: origin,
     raw: vrs,
     data: JSON.stringify(vrs, null, '  ')
@@ -72,7 +72,7 @@ export function parsePs35Node(partNode, origin) {
   }
 
   const vrVl32Result = {
-    name: '32-bit VL VRs',
+    name: 'DICOM 32-bit VL VRs',
     origin: origin,
     raw: vrVl32s,
     data: JSON.stringify(vrVl32s)
@@ -84,7 +84,7 @@ export function parsePs35Node(partNode, origin) {
     partNode.querySelector(getSelector('sect_6.1.2.2')));
 
   const charSetVrResult = {
-    name: 'Character Set VRs',
+    name: 'DICOM Character Set VRs',
     origin: origin,
     raw: charSetVrs,
     data: JSON.stringify(charSetVrs)

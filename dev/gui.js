@@ -159,6 +159,16 @@ function showError(error) {
 }
 
 /**
+ * Make a name a file name.
+ *
+ * @param {string} name The name to change.
+ * @returns {string} The file name.
+ */
+function toFileName(name) {
+  name = name.replaceAll(' ', '_');
+  return name.toLowerCase();
+}
+/**
  * Append a text area to the ouput div.
  *
  * @param {string} name The name of text area.
@@ -183,7 +193,7 @@ function appendResult(name, content) {
     ));
 
     const link = document.createElement('a');
-    link.download = 'result.json';
+    link.download = toFileName(content.name) + '.json';
     const blob = new Blob([content.data], {type: 'text/plain'});
     link.href = window.URL.createObjectURL(blob);
     link.appendChild(document.createTextNode('download'));
