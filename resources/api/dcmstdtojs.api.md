@@ -47,7 +47,11 @@ export class DicomUID {
 
 // @public
 export class DicomXMLParser {
+    parseModules(parts: Document[], origin?: string): DicomParseResult[];
     parseNode(partNode: Document, origin?: string): DicomParseResult[];
+    parseTags(parts: Document[], origin?: string): DicomParseResult[];
+    parseUids(parts: Document[], origin?: string): DicomParseResult[];
+    parseVrs(parts: Document[], origin?: string): DicomParseResult[];
 }
 
 // (No @packageDocumentation comment for this package)

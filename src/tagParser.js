@@ -82,6 +82,7 @@ export function parsePs36TagsNode(partNode, origin) {
  * @returns {DicomParseResult[]} The parse result.
  */
 export function parsePs37Node(partNode, origin) {
+  /** @type {DicomTag[]} */
   let tags37 = [];
   // 0000: command
   // https://dicom.nema.org/medical/dicom/current/output/chtml/part07/chapter_E.html#table_E.1-1
