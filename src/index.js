@@ -1,10 +1,12 @@
+import {DicomTag} from './tagParser.js';
+import {DicomUID} from './uidParser.js';
 import {
-  DicomTag,
-  DicomUID,
   DicomModule,
-  DicomModuleAttribute,
-  DicomParseResult,
-  DicomXMLParser
+  DicomModuleAttribute
+} from './moduleParser.js';
+import {
+  DicomXMLParser,
+  DicomParseResult
 } from './parser.js';
 
 export {

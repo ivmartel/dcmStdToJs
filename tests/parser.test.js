@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 
 import {DicomXMLParser} from '../src/parser.js';
+
 /**
  * Tests for the 'parser.js' file.
  */
