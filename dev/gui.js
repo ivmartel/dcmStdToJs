@@ -9,10 +9,13 @@ export class Gui {
    * Setup the gui: bind parse button.
    */
   setup() {
-    document.getElementById('parseButton').addEventListener(
-      'click', onParseButtonClick);
+    document.getElementById('parseFileButton').addEventListener(
+      'click', onParseFileButtonClick);
     document.getElementById('fileupload').addEventListener(
       'change', onFileuploadChange);
+
+    document.getElementById('parseUrlButton').addEventListener(
+      'click', onParseUrlButtonClick);
   }
 
   /**
@@ -43,20 +46,20 @@ function setProgress(event) {
  */
 function onFileuploadChange(event) {
   // enable / disable parse button if files were selected
-  const parseButton = document.getElementById('parseButton');
+  const parseFileButton = document.getElementById('parseFileButton');
   if (event.target.files.length !== 0) {
-    parseButton.disabled = false;
+    parseFileButton.disabled = false;
   } else {
-    parseButton.disabled = true;
+    parseFileButton.disabled = true;
   }
 }
 
 /**
- * Handle parse button click event.
+ * Handle parse file button click event.
  *
  * @param {Event} event The parse button click event.
  */
-function onParseButtonClick(event) {
+function onParseFileButtonClick(event) {
   const button = event.target;
 
   // reset progress
@@ -71,7 +74,7 @@ function onParseButtonClick(event) {
 
   const parser = new DicomXMLParser();
 
-  // parse file if provided, parse link otherwise
+  // parse file if provided
   const fileInputElement = document.getElementById('fileupload');
   if (fileInputElement.files.length === 1) {
     const file = fileInputElement.files[0];
@@ -97,39 +100,60 @@ function onParseButtonClick(event) {
       showError('ERROR while loading data, see log for details...');
     };
     reader.readAsText(file);
-  } else {
-    // use selected version or default
-    const dicomVersionsSelect = document.getElementById('dicomVersions');
-    const selectedVersion = dicomVersionsSelect.options[
-      dicomVersionsSelect.selectedIndex
-    ].value;
-    const dicomPartsSelect = document.getElementById('dicomParts');
-    const selectedPart = dicomPartsSelect.options[
-      dicomPartsSelect.selectedIndex
-    ].value;
-
-    const url = nema.getDicomPartLinks(selectedPart)[selectedVersion].xml;
-    const request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'document';
-    request.overrideMimeType('text/xml'); // force xml
-    request.onload = function (event) {
-      // enable button
-      button.disabled = false;
-      // show tags
-      try {
-        showResult(parser.parseNode(event.target.response, url));
-      } catch (error) {
-        showError(error);
-      }
-    };
-    request.onprogress = setProgress;
-    request.onloadend = setProgress;
-    request.onerror = function () {
-      showError('ERROR while retrieving data, see log for details...');
-    };
-    request.send();
   }
+}
+
+/**
+ * Handle parse url button click event.
+ *
+ * @param {Event} event The parse button click event.
+ */
+function onParseUrlButtonClick(event) {
+  const button = event.target;
+
+  // reset progress
+  setProgress({loaded: 0, total: 100, lengthComputable: true});
+
+  // disable button
+  button.disabled = true;
+
+  // clear output zone
+  const outputDiv = document.getElementById('output');
+  outputDiv.innerHTML = '';
+
+  const parser = new DicomXMLParser();
+
+  // use selected version or default
+  const dicomVersionsSelect = document.getElementById('dicomVersions');
+  const selectedVersion = dicomVersionsSelect.options[
+    dicomVersionsSelect.selectedIndex
+  ].value;
+  const dicomPartsSelect = document.getElementById('dicomParts');
+  const selectedPart = dicomPartsSelect.options[
+    dicomPartsSelect.selectedIndex
+  ].value;
+
+  const url = nema.getDicomPartLinks(selectedPart)[selectedVersion].xml;
+  const request = new XMLHttpRequest();
+  request.open('GET', url, true);
+  request.responseType = 'document';
+  request.overrideMimeType('text/xml'); // force xml
+  request.onload = function (event) {
+    // enable button
+    button.disabled = false;
+    // show tags
+    try {
+      showResult(parser.parseNode(event.target.response, url));
+    } catch (error) {
+      showError(error);
+    }
+  };
+  request.onprogress = setProgress;
+  request.onloadend = setProgress;
+  request.onerror = function () {
+    showError('ERROR while retrieving data, see log for details...');
+  };
+  request.send();
 }
 
 /**
@@ -259,21 +283,21 @@ function updateStandardSelect() {
     partSelect.add(partOption);
   }
 
-  const parseButton = document.getElementById('parseButton');
+  const parseUrlButton = document.getElementById('parseUrlButton');
 
   // update associated links on select change
   versionSelect.onchange = function (event) {
     const part = partSelect[partSelect.selectedIndex].value;
     if (part !== '') {
       updateVersionLinks(event.target.value, part);
-      parseButton.disabled = false;
+      parseUrlButton.disabled = false;
     }
   };
   partSelect.onchange = function (event) {
     const version = versionSelect[versionSelect.selectedIndex].value;
     if (version !== '') {
       updateVersionLinks(version, event.target.value);
-      parseButton.disabled = false;
+      parseUrlButton.disabled = false;
     }
   };
 }

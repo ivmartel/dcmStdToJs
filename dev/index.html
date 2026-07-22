@@ -26,21 +26,20 @@
   </p>
 
   <ul>
-  <li><label for="fileupload">Select a file to parse: </label>
-  <input id="fileupload" type="file"></li>
-
+  <li>
+    <label for="fileupload">Select a file to parse: </label>
+    <input id="fileupload" type="file" accept=".xml">
+    <button id="parseFileButton" disabled>Parse</button>
+  </li>
   <li>Or choose an online
-  <label for="dicomVersions">version:</label>
-  <select name="dicomVersions" id="dicomVersions"></select>
-  <label for="dicomParts">part:</label>
-  <select name="dicomParts" id="dicomParts"></select>
-  <span id="versionLinks"></span></li>
-
+    <label for="dicomVersions">version:</label>
+    <select name="dicomVersions" id="dicomVersions"></select>
+    <label for="dicomParts">part:</label>
+    <select name="dicomParts" id="dicomParts"></select>
+    <span id="versionLinks"></span>
+    <button id="parseUrlButton" disabled>Parse</button>
+  </li>
   </ul>
-
-  <p>
-  <button id="parseButton" disabled>Parse</button>
-  </p>
 
   <progress id="progressBar" value="0" max="100"></progress>
 

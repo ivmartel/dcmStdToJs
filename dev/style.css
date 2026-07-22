@@ -6,6 +6,10 @@ input[type="file"] {
   background: #efefef;
 }
 
+li {
+ padding: 5px;
+}
+
 #output {
   margin-top: 10px;
 }
