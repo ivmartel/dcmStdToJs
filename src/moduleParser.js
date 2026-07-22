@@ -150,7 +150,7 @@ function parseModuleListNode(node, partNode, expectedCaption, usageRegex) {
  *
  * @param {Array} list The IOD module list.
  * @param {Document} partNode The main DOM node.
- * @param {object} macros Cache of macro tables
+ * @param {object} macros Cache of macro tables.
  * @param {object} [fgModulesProperties] Optional functional group
  *   modules properties, undefined to parse a functional group.
  * @returns {object} The map of module name to module attributes.
@@ -258,7 +258,7 @@ function extractCondition(str) {
  *
  * @param {Element} node The content node.
  * @param {Document} partNode The main DOM node.
- * @param {object} macros Cache of macro tables
+ * @param {object} macros Cache of macro tables.
  * @param {string} [expectedCaption] The expected node caption.
  * @param {object} [fgModules] A list of functional group modules.
  * @returns {Array} The list of ....
