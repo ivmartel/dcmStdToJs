@@ -57,8 +57,6 @@ export class DicomModuleAttribute {
   items;
 }
 
-const macros = {};
-
 /**
  * Parse a PS3.3 node: Information Object Definitions (IODs).
  * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html}.
@@ -69,6 +67,9 @@ const macros = {};
  */
 export function parsePs33Node(partNode, origin) {
   const result = [];
+  // cache of macro tables, local to this parse call so it cannot
+  // leak stale content across different partNode/version parses
+  const macros = {};
   // CT: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_A.3.3.html#table_A.3-1
   const iodList = [
     {name: 'CT Image', label: 'table_A.3-1'},
@@ -95,7 +96,7 @@ export function parsePs33Node(partNode, origin) {
         usageRegex
       );
       fgModulesProperties =
-        parseModulesFromList(fgModulesDefs, partNode);
+        parseModulesFromList(fgModulesDefs, partNode, undefined, macros);
     }
     // IOD modules
     const iodModulesDefs = parseModuleListNode(
@@ -105,7 +106,7 @@ export function parsePs33Node(partNode, origin) {
       usageRegex
     );
     const modulesProperties = parseModulesFromList(
-      iodModulesDefs, partNode, fgModulesProperties);
+      iodModulesDefs, partNode, fgModulesProperties, macros);
 
     const typeRegex = /1|1C/g;
     const modules = modulePropertiesListToObject(
@@ -151,9 +152,11 @@ function parseModuleListNode(node, partNode, expectedCaption, usageRegex) {
  * @param {Document} partNode The main DOM node.
  * @param {object} [fgModulesProperties] Optional functional group
  *   modules properties, undefined to parse a functional group.
+ * @param {object} macros Cache of macro tables, local to the parent
+ *   parsePs33Node call.
  * @returns {object} The map of module name to module attributes.
  */
-function parseModulesFromList(list, partNode, fgModulesProperties) {
+function parseModulesFromList(list, partNode, fgModulesProperties, macros) {
   const result = {};
   for (const item of list) {
     // TODO include usage and condition
@@ -171,8 +174,8 @@ function parseModulesFromList(list, partNode, fgModulesProperties) {
           name += ' Module';
         }
         name += ' Attributes';
-        result[moduleName] =
-          parseModuleAttributesNode(node, partNode, name, fgModulesProperties);
+        result[moduleName] = parseModuleAttributesNode(
+          node, partNode, name, fgModulesProperties, macros);
         break;
       }
     }
@@ -258,9 +261,12 @@ function extractCondition(str) {
  * @param {Document} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption.
  * @param {object} fgModules A list of functional group modules.
+ * @param {object} macros Cache of macro tables, local to the parent
+ *   parsePs33Node call.
  * @returns {Array} The list of ....
  */
-function parseModuleAttributesNode(node, partNode, expectedCaption, fgModules) {
+function parseModuleAttributesNode(
+  node, partNode, expectedCaption, fgModules, macros) {
   // expecting macro includes as: 'Include <xref linkend="table_10-18"
   //   xrefstyle="select: label quotedtitle"/>'
   const includeMacro = 'Include linkend=';
@@ -295,8 +301,8 @@ function parseModuleAttributesNode(node, partNode, expectedCaption, fgModules) {
         // store macro if not done yet
         if (!macros[xmlid]) {
           const subTable = partNode.querySelector(getSelector(xmlid));
-          macros[xmlid] =
-            parseModuleAttributesNode(subTable, partNode, undefined);
+          macros[xmlid] = parseModuleAttributesNode(
+            subTable, partNode, undefined, undefined, macros);
         }
         attribute = macros[xmlid];
       }
