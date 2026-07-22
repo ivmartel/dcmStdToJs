@@ -96,7 +96,7 @@ export function parsePs33Node(partNode, origin) {
         usageRegex
       );
       fgModulesProperties =
-        parseModulesFromList(fgModulesDefs, partNode, undefined, macros);
+        parseModulesFromList(fgModulesDefs, partNode, macros);
     }
     // IOD modules
     const iodModulesDefs = parseModuleListNode(
@@ -106,7 +106,7 @@ export function parsePs33Node(partNode, origin) {
       usageRegex
     );
     const modulesProperties = parseModulesFromList(
-      iodModulesDefs, partNode, fgModulesProperties, macros);
+      iodModulesDefs, partNode, macros, fgModulesProperties);
 
     const typeRegex = /1|1C/g;
     const modules = modulePropertiesListToObject(
@@ -150,13 +150,12 @@ function parseModuleListNode(node, partNode, expectedCaption, usageRegex) {
  *
  * @param {Array} list The IOD module list.
  * @param {Document} partNode The main DOM node.
+ * @param {object} macros Cache of macro tables
  * @param {object} [fgModulesProperties] Optional functional group
  *   modules properties, undefined to parse a functional group.
- * @param {object} macros Cache of macro tables, local to the parent
- *   parsePs33Node call.
  * @returns {object} The map of module name to module attributes.
  */
-function parseModulesFromList(list, partNode, fgModulesProperties, macros) {
+function parseModulesFromList(list, partNode, macros, fgModulesProperties) {
   const result = {};
   for (const item of list) {
     // TODO include usage and condition
@@ -175,7 +174,7 @@ function parseModulesFromList(list, partNode, fgModulesProperties, macros) {
         }
         name += ' Attributes';
         result[moduleName] = parseModuleAttributesNode(
-          node, partNode, name, fgModulesProperties, macros);
+          node, partNode, macros, name, fgModulesProperties);
         break;
       }
     }
@@ -259,14 +258,13 @@ function extractCondition(str) {
  *
  * @param {Element} node The content node.
  * @param {Document} partNode The main DOM node.
- * @param {string} expectedCaption The expected node caption.
- * @param {object} fgModules A list of functional group modules.
- * @param {object} macros Cache of macro tables, local to the parent
- *   parsePs33Node call.
+ * @param {object} macros Cache of macro tables
+ * @param {string} [expectedCaption] The expected node caption.
+ * @param {object} [fgModules] A list of functional group modules.
  * @returns {Array} The list of ....
  */
 function parseModuleAttributesNode(
-  node, partNode, expectedCaption, fgModules, macros) {
+  node, partNode, macros, expectedCaption, fgModules) {
   // expecting macro includes as: 'Include <xref linkend="table_10-18"
   //   xrefstyle="select: label quotedtitle"/>'
   const includeMacro = 'Include linkend=';
@@ -302,11 +300,15 @@ function parseModuleAttributesNode(
         if (!macros[xmlid]) {
           const subTable = partNode.querySelector(getSelector(xmlid));
           macros[xmlid] = parseModuleAttributesNode(
-            subTable, partNode, undefined, undefined, macros);
+            subTable, partNode, macros);
         }
         attribute = macros[xmlid];
       }
     } else if (attributeName.includes(includeFG)) {
+      if (typeof fgModules === 'undefined') {
+        console.warn('Cannot parse functional group');
+        continue;
+      }
       // include functional group macro
       includeCase = true;
       attribute = [];
