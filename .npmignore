@@ -1,0 +1,12 @@
+# ignored folders
+/assets
+/build
+/config
+/dev
+/coverage
+/resources
+/src
+/tests
+
+# root files (will keep package, license and readme)
+/*.*

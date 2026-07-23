@@ -1,6 +1,11 @@
+import path from 'path';
+import {fileURLToPath} from 'url';
 import {merge} from 'webpack-merge';
+import CopyPlugin from 'copy-webpack-plugin';
 
 import {common} from './webpack.common.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default merge(common, {
   mode: 'production',
@@ -15,5 +20,16 @@ export default merge(common, {
         }
       }
     ]
-  }
+  },
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, '../assets/**/*.json'),
+          to: 'assets/[path][name][ext]',
+          context: path.resolve(__dirname, '../assets')
+        }
+      ]
+    })
+  ]
 });
