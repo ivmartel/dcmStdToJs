@@ -41,7 +41,7 @@
     "webpack-merge": "^6.0.1"
   },
   "scripts": {
-    "prepack": "npm run build",
+    "prepack": "yarn run build",
     "start": "webpack serve --config config/webpack.dev.js",
     "pack": "webpack --config config/webpack.prod.js",
     "build": "yarn run pack && yarn run types && yarn run api",
