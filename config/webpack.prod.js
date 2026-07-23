@@ -27,7 +27,10 @@ export default merge(common, {
         {
           from: path.resolve(__dirname, '../assets/**/*.json'),
           to: 'assets/[path][name][ext]',
-          context: path.resolve(__dirname, '../assets')
+          context: path.resolve(__dirname, '../assets'),
+          transform(content) {
+            return JSON.stringify(JSON.parse(content.toString()));
+          }
         }
       ]
     })
