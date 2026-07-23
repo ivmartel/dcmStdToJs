@@ -5,6 +5,7 @@ const dicomVersions = {
   2018: ['a'],
   2020: ['a'],
   2022: ['a'],
+  2024: ['a'],
 };
 
 // Supported DICOM parts
