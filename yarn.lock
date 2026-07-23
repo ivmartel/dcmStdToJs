@@ -4563,9 +4563,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dcmStdToJs@workspace:.":
+"dcmstdtojs@workspace:.":
   version: 0.0.0-use.local
-  resolution: "dcmStdToJs@workspace:."
+  resolution: "dcmstdtojs@workspace:."
   dependencies:
     "@babel/core": "npm:^8.0.1"
     "@babel/preset-env": "npm:^8.0.2"
