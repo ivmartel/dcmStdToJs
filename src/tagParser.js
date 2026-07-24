@@ -220,8 +220,8 @@ function adaptTagsForDwv(inputTags) {
     return str;
   }
 
-  // clone input
-  const tags = inputTags.slice();
+  // clone input (deep, so as to not mutate the caller's tags)
+  const tags = structuredClone(inputTags);
 
   // list groups
   const groups = [];

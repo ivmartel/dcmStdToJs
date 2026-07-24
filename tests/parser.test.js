@@ -11,14 +11,18 @@ import {DicomXMLParser} from '../src/parser.js';
  * Convert a tag into a string array.
  *
  * @param {object} tag The input dicom tag.
+ * @param {string} [keywordText] Optional raw text to use for the name and
+ *   keyword cells instead of `tag.keyword` (for ex to include characters
+ *   that are expected to be cleaned during parsing).
  * @returns {Array} An array with the tag properties.
  */
-function getTagArray(tag) {
+function getTagArray(tag, keywordText) {
   const res = [];
-  res.push('(' + tag.group.substr(2) + ',' + tag.element.substr(2) + ')');
+  res.push('(' + tag.group + ',' + tag.element + ')');
+  const name = typeof keywordText === 'undefined' ? tag.keyword : keywordText;
   // name
-  res.push(tag.keyword);
-  res.push(tag.keyword);
+  res.push(name);
+  res.push(name);
   res.push(tag.vr);
   res.push(tag.vm);
   // retired
@@ -229,11 +233,13 @@ describe('#DicomXMLParser', () => {
     const tag = {
       group: '0004',
       element: '1142',
-      keyword: 'Specific​Character​Set​',
+      keyword: 'SpecificCharacterSet',
       vr: 'CS',
       vm: '1'
     };
-    const tagArray = getTagArray(tag);
+    // the source cell text includes zero-width spaces to check that they
+    // get cleaned out of the parsed keyword (see `tag.keyword` above)
+    const tagArray = getTagArray(tag, 'Specific​Character​Set​');
     for (let i = 0; i < tagArray.length; ++i) {
       const cell = row.insertCell();
       const para = document.createElement('para');
@@ -243,9 +249,7 @@ describe('#DicomXMLParser', () => {
     }
     node.appendChild(table);
     const result = parser.parseNode(node)[0];
-    // can't make object comparison work...
-    // assert.propEqual(result10[0], tag10, 'Table node with content.');
-    expect(result.raw[0].toString()).toEqual(tag.toString());
+    expect(result.raw[0]).toEqual(tag);
   });
 
 });

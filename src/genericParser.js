@@ -112,7 +112,7 @@ function parseContentNode(paraNode, partNode) {
     const xmlid = getLinkend(content);
     if (xmlid.startsWith('sect_')) {
       const subSection = partNode.querySelector(getSelector(xmlid));
-      const nodes = subSection.childNodes;
+      const nodes = subSection ? subSection.childNodes : undefined;
       if (nodes) {
         for (const node of nodes) {
           if (node instanceof Element && node.nodeName === 'variablelist') {

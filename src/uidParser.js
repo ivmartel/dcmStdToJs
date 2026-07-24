@@ -128,7 +128,10 @@ function parseUidTableNode(
  * @returns {DicomUID[]} The adapted UIDs as a new list.
  */
 function adaptUidsForDwv(inputUids) {
-  for (const uid of inputUids) {
+  // clone input (deep, so as to not mutate the caller's uids)
+  const uids = structuredClone(inputUids);
+
+  for (const uid of uids) {
     let name = uid.name;
     // replace '&amp'
     if (name.includes('&amp;')) {
@@ -142,7 +145,7 @@ function adaptUidsForDwv(inputUids) {
     }
   }
 
-  return inputUids;
+  return uids;
 }
 
 /**

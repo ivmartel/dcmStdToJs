@@ -163,9 +163,15 @@ function parseModulesFromList(list, partNode, macros, fgModulesProperties) {
     // get the module from the referenced section
     const xmlid = getLinkend(item.reference);
     const sectNode = partNode.querySelector(getSelector(xmlid));
+    if (!sectNode) {
+      console.warn('Cannot find section for module: ' + moduleName);
+      continue;
+    }
+    let foundTable = false;
     for (const node of sectNode.childNodes) {
       // stop at first table
       if (node instanceof Element && node.nodeName === 'table') {
+        foundTable = true;
         let name = moduleName;
         if (typeof fgModulesProperties === 'undefined') {
           name += ' Macro';
@@ -177,6 +183,9 @@ function parseModulesFromList(list, partNode, macros, fgModulesProperties) {
           node, partNode, macros, name, fgModulesProperties);
         break;
       }
+    }
+    if (!foundTable) {
+      console.warn('Cannot find table for module: ' + moduleName);
     }
   }
   return result;
