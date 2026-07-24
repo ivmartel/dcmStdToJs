@@ -1,29 +1,12 @@
 import {describe, expect, test} from 'vitest';
 
 import {parsePs36UIDNode} from '../src/uidParser.js';
+import {parseXml, simpleTableXml} from './utils.js';
 
 /**
  * Tests for the 'uidParser.js' file.
  */
 /** @module tests/uidParser */
-
-/**
- * Parse an XML string into a DOM document.
- * This relies on genericParser's XML-style, case-sensitive nodeName
- * parsing, so tests build fixtures the same way (as opposed to an HTML
- * document, which upper-cases tag names).
- *
- * @param {string} str The XML string.
- * @returns {Document} The parsed document.
- */
-function parseXml(str) {
-  const doc = new DOMParser().parseFromString(str, 'application/xml');
-  const error = doc.getElementsByTagName('parsererror')[0];
-  if (error) {
-    throw new Error('XML parse error: ' + error.textContent);
-  }
-  return doc;
-}
 
 /**
  * Build a (post-2020d) UID table row: value, name, keyword, type, part.
@@ -40,30 +23,14 @@ function uidRow(value, name, keyword, type, part) {
 }
 
 /**
- * Build an XML table_A-1 'UID Values' table.
- *
- * @param {string[][]} rows The table rows (as arrays of cell values).
- * @returns {string} The table XML string.
- */
-function uidTableXml(rows) {
-  const rowsXml = rows.map(function (cells) {
-    const cellsXml = cells.map(function (cell) {
-      return '<td><para>' + cell + '</para></td>';
-    }).join('');
-    return '<tr>' + cellsXml + '</tr>';
-  }).join('');
-  return '<table label="A-1"><caption>UID Values</caption>' +
-    '<tbody>' + rowsXml + '</tbody></table>';
-}
-
-/**
  * Build a PS3.6 UID document (table A-1).
  *
  * @param {string[][]} rows The table_A-1 rows.
  * @returns {Document} The parsed document.
  */
 function getPs36UidDoc(rows) {
-  return parseXml('<root>' + uidTableXml(rows) + '</root>');
+  return parseXml(
+    '<root>' + simpleTableXml('A-1', 'UID Values', rows) + '</root>');
 }
 
 describe('parsePs36UIDNode', () => {

@@ -1,28 +1,12 @@
 import {describe, expect, test, vi} from 'vitest';
 
 import {parsePs36TagsNode, parsePs37Node} from '../src/tagParser.js';
+import {parseXml, simpleTableXml} from './utils.js';
 
 /**
  * Tests for the 'tagParser.js' file.
  */
 /** @module tests/tagParser */
-
-/**
- * Parse an XML string into a DOM document.
- * Tags use XML (not HTML) tables, and tagParser relies on genericParser's
- * XML-style parsing, so tests build fixtures the same way.
- *
- * @param {string} str The XML string.
- * @returns {Document} The parsed document.
- */
-function parseXml(str) {
-  const doc = new DOMParser().parseFromString(str, 'application/xml');
-  const error = doc.getElementsByTagName('parsererror')[0];
-  if (error) {
-    throw new Error('XML parse error: ' + error.textContent);
-  }
-  return doc;
-}
 
 /**
  * Build a tag table row as an array of table row (`(group,element)`,
@@ -48,25 +32,6 @@ function tagRow(group, element, keyword, vr, vm, retired) {
 }
 
 /**
- * Build an XML tags table.
- *
- * @param {string} label The table label.
- * @param {string} caption The table caption.
- * @param {string[][]} rows The table rows (as arrays of cell values).
- * @returns {string} The table XML string.
- */
-function tableXml(label, caption, rows) {
-  const rowsXml = rows.map(function (cells) {
-    const cellsXml = cells.map(function (cell) {
-      return '<td><para>' + cell + '</para></td>';
-    }).join('');
-    return '<tr>' + cellsXml + '</tr>';
-  }).join('');
-  return '<table label="' + label + '"><caption>' + caption + '</caption>' +
-    '<tbody>' + rowsXml + '</tbody></table>';
-}
-
-/**
  * Build a PS3.6 tags document (tables 7-1, 8-1 and 6-1).
  *
  * @param {string[][]} [fileMetaRows] Rows for table 7-1.
@@ -76,12 +41,12 @@ function tableXml(label, caption, rows) {
  */
 function getPs36Doc(fileMetaRows, dirStructRows, dataElementRows) {
   const xml = '<root>' +
-    tableXml(
+    simpleTableXml(
       '7-1', 'Registry of DICOM File Meta Elements', fileMetaRows ?? []) +
-    tableXml(
+    simpleTableXml(
       '8-1', 'Registry of DICOM Directory Structuring Elements',
       dirStructRows ?? []) +
-    tableXml(
+    simpleTableXml(
       '6-1', 'Registry of DICOM Data Elements', dataElementRows ?? []) +
     '</root>';
   return parseXml(xml);
@@ -96,8 +61,9 @@ function getPs36Doc(fileMetaRows, dirStructRows, dataElementRows) {
  */
 function getPs37Doc(commandRows, retiredCommandRows) {
   const xml = '<root>' +
-    tableXml('E.1-1', 'Command Fields', commandRows ?? []) +
-    tableXml('E.2-1', 'Retired Command Fields', retiredCommandRows ?? []) +
+    simpleTableXml('E.1-1', 'Command Fields', commandRows ?? []) +
+    simpleTableXml(
+      'E.2-1', 'Retired Command Fields', retiredCommandRows ?? []) +
     '</root>';
   return parseXml(xml);
 }
@@ -106,7 +72,7 @@ describe('parsePs36TagsNode', () => {
 
   test('throws when a required table is missing', () => {
     const xml = '<root>' +
-      tableXml(
+      simpleTableXml(
         '7-1', 'Registry of DICOM File Meta Elements',
         [tagRow('0002', '0001', 'FileMetaInformationVersion', 'OB', '1')]) +
       '</root>';
@@ -219,7 +185,7 @@ describe('parsePs37Node', () => {
 
   test('throws when a required table is missing', () => {
     const xml = '<root>' +
-      tableXml('E.1-1', 'Command Fields',
+      simpleTableXml('E.1-1', 'Command Fields',
         [tagRow('0000', '0002', 'AffectedSOPClassUID', 'UI', '1')]) +
       '</root>';
     const doc = parseXml(xml);

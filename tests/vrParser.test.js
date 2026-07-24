@@ -1,29 +1,12 @@
 import {describe, expect, test, vi} from 'vitest';
 
 import {parsePs35Node} from '../src/vrParser.js';
+import {parseXml, table, section, simpleTableXml} from './utils.js';
 
 /**
  * Tests for the 'vrParser.js' file.
  */
 /** @module tests/vrParser */
-
-/**
- * Parse an XML string into a DOM document.
- * This relies on genericParser's XML-style parsing, so tests build
- * fixtures the same way (as opposed to an HTML document, which
- * upper-cases tag names).
- *
- * @param {string} str The XML string.
- * @returns {Document} The parsed document.
- */
-function parseXml(str) {
-  const doc = new DOMParser().parseFromString(str, 'application/xml');
-  const error = doc.getElementsByTagName('parsererror')[0];
-  if (error) {
-    throw new Error('XML parse error: ' + error.textContent);
-  }
-  return doc;
-}
 
 /**
  * Build a fake DICOM standard book XML fragment.
@@ -45,14 +28,7 @@ function bookXml(version) {
  * @returns {string} The table XML string.
  */
 function vrTableXml(rows) {
-  const rowsXml = rows.map(function (cells) {
-    const cellsXml = cells.map(function (cell) {
-      return '<td><para>' + cell + '</para></td>';
-    }).join('');
-    return '<tr>' + cellsXml + '</tr>';
-  }).join('');
-  return '<table label="6.2-1"><caption>DICOM Value Representations' +
-    '</caption><tbody>' + rowsXml + '</tbody></table>';
+  return simpleTableXml('6.2-1', 'DICOM Value Representations', rows);
 }
 
 /**
@@ -63,8 +39,7 @@ function vrTableXml(rows) {
  * @returns {string} The table XML string.
  */
 function specialVrTableXml(label, captionText) {
-  return '<table label="' + label + '"><caption>' + captionText +
-    '</caption></table>';
+  return table(label, captionText, []);
 }
 
 /**
@@ -74,7 +49,7 @@ function specialVrTableXml(label, captionText) {
  * @returns {string} The section XML string.
  */
 function charSetSectionXml(paraText) {
-  return '<section label="6.1.2.2"><para>' + paraText + '</para></section>';
+  return section('6.1.2.2', '<para>' + paraText + '</para>');
 }
 
 /**

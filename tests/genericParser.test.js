@@ -9,29 +9,12 @@ import {
   getStdInfo,
   getStdVersion
 } from '../src/genericParser.js';
+import {parseXml} from './utils.js';
 
 /**
  * Tests for the 'genericParser.js' file.
  */
 /** @module tests/genericParser */
-
-/**
- * Parse an XML string into a DOM document.
- * The DICOM standard files are XML (not HTML), so tag names keep their
- * original case (unlike an HTML document where they get upper-cased),
- * which matters for the case-sensitive nodeName checks in genericParser.
- *
- * @param {string} str The XML string.
- * @returns {Document} The parsed document.
- */
-function parseXml(str) {
-  const doc = new DOMParser().parseFromString(str, 'application/xml');
-  const error = doc.getElementsByTagName('parsererror')[0];
-  if (error) {
-    throw new Error('XML parse error: ' + error.textContent);
-  }
-  return doc;
-}
 
 describe('cleanString', () => {
 

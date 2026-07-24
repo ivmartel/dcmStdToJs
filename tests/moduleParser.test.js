@@ -1,41 +1,12 @@
 import {describe, expect, test, vi} from 'vitest';
 
 import {parsePs33Node} from '../src/moduleParser.js';
+import {parseXml, td, tr, table, section} from './utils.js';
 
 /**
  * Tests for the 'moduleParser.js' file.
  */
 /** @module tests/moduleParser */
-
-/**
- * Parse an XML string into a DOM document.
- * This relies on genericParser's XML-style, case-sensitive nodeName
- * parsing (ex to detect 'table' elements and 'xref'/'variablelist'
- * content), so tests build fixtures the same way (as opposed to an HTML
- * document, which upper-cases tag names).
- *
- * @param {string} str The XML string.
- * @returns {Document} The parsed document.
- */
-function parseXml(str) {
-  const doc = new DOMParser().parseFromString(str, 'application/xml');
-  const error = doc.getElementsByTagName('parsererror')[0];
-  if (error) {
-    throw new Error('XML parse error: ' + error.textContent);
-  }
-  return doc;
-}
-
-/**
- * Build a `<td><para>...</para></td>` cell.
- *
- * @param {string} innerXml The cell inner content (text and/or elements,
- *   ex an `<xref .../>`).
- * @returns {string} The cell XML string.
- */
-function td(innerXml) {
-  return '<td><para>' + innerXml + '</para></td>';
-}
 
 /**
  * Build a `<td>` cell whose content is a description paragraph followed
@@ -54,32 +25,6 @@ function tdWithEnum(text, terms) {
 }
 
 /**
- * Build a `<tr>` row from an array of cell XML strings.
- *
- * @param {string[]} cells The cell XML strings (ex from `td()`).
- * @returns {string} The row XML string.
- */
-function tr(cells) {
-  return '<tr>' + cells.join('') + '</tr>';
-}
-
-/**
- * Build a `<table>` element.
- *
- * @param {string} label The table label.
- * @param {string} [caption] Optional table caption; omit for tables that
- *   are not caption-checked (ex macro tables).
- * @param {string[]} [rows] The row XML strings (ex from `tr()`).
- * @returns {string} The table XML string.
- */
-function table(label, caption, rows) {
-  const captionXml = typeof caption !== 'undefined'
-    ? '<caption>' + caption + '</caption>' : '';
-  return '<table label="' + label + '">' + captionXml +
-    '<tbody>' + (rows ?? []).join('') + '</tbody></table>';
-}
-
-/**
  * Build a `<section>` element wrapping a single `<table>`.
  *
  * @param {string} sectionLabel The section label.
@@ -89,8 +34,7 @@ function table(label, caption, rows) {
  * @returns {string} The section XML string.
  */
 function sectionWithTable(sectionLabel, tableLabel, caption, rows) {
-  return '<section label="' + sectionLabel + '">' +
-    table(tableLabel, caption, rows) + '</section>';
+  return section(sectionLabel, table(tableLabel, caption, rows));
 }
 
 /**
