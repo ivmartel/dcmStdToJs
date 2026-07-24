@@ -24,6 +24,19 @@ export function parseXml(str) {
 }
 
 /**
+ * Build a `<book>` element.
+ *
+ * @param {string} label The book label, ex 'PS3.7'.
+ * @param {string} subtitle The book subtitle, ex
+ *   'DICOM PS3.7 2020a - Part 7'.
+ * @returns {string} The book XML string.
+ */
+export function bookXml(label, subtitle) {
+  return '<book label="' + label + '"><subtitle>' + subtitle +
+    '</subtitle></book>';
+}
+
+/**
  * Build a `<td><para>...</para></td>` cell.
  *
  * @param {string} innerXml The cell inner content (text and/or elements,

@@ -1,7 +1,13 @@
 import {describe, expect, test, vi} from 'vitest';
 
 import {parsePs35Node} from '../src/vrParser.js';
-import {parseXml, table, section, simpleTableXml} from './utils.js';
+import {
+  parseXml,
+  table,
+  section,
+  simpleTableXml,
+  bookXml as buildBookXml
+} from './utils.js';
 
 /**
  * Tests for the 'vrParser.js' file.
@@ -15,9 +21,7 @@ import {parseXml, table, section, simpleTableXml} from './utils.js';
  * @returns {string} The book XML string.
  */
 function bookXml(version) {
-  return '<book label="PS3.5">' +
-    '<subtitle>DICOM PS3.5 ' + version + ' - Part 5</subtitle>' +
-    '</book>';
+  return buildBookXml('PS3.5', 'DICOM PS3.5 ' + version + ' - Part 5');
 }
 
 /**

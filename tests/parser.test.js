@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 
 import {DicomXMLParser} from '../src/parser.js';
+import {parseXml, bookXml, table, td, tr} from './utils.js';
 
 /**
  * Tests for the 'parser.js' file.
@@ -31,62 +32,24 @@ function getTagArray(tag, keywordText) {
 }
 
 /**
- * Get a fake dicom book DOM node.
+ * Build a valid DICOM standard book XML fragment (PS3.7, 2020a).
  *
- * @param {string} label The dicom part label.
- * @returns {Node} A DOM node.
+ * @returns {string} The book XML string.
  */
-function getBookNode(label) {
-  const node = document.createElement('div');
-  const book = document.createElement('book');
-  const subtitle = document.createElement('subtitle');
-  subtitle.appendChild(
-    document.createTextNode('DICOM ' + label + ' 2020a -'));
-  book.setAttribute('label', label);
-  book.appendChild(subtitle);
-  node.appendChild(book);
-  return node;
+function validBookXml() {
+  return bookXml('PS3.7', 'DICOM PS3.7 2020a -');
 }
 
 /**
- * Get a valid dicom book node.
+ * Build the E.1-1 'Command Fields' and E.2-1 'Retired Command Fields'
+ * tables, with the given rows in the E.1-1 table.
  *
- * @returns {Node} A DOM node.
+ * @param {string[]} [rows] The E.1-1 table row XML strings.
+ * @returns {string} The tables XML string.
  */
-function getValidBookNode() {
-  return getBookNode('PS3.7');
-}
-
-/**
- * Get a fake table node.
- *
- * @param {string} label The table label.
- * @param {string} captionText The table caption text.
- * @returns {Node} A DOM node.
- */
-function getTableNode(label, captionText) {
-  const table = document.createElement('table');
-  table.setAttribute('label', label);
-  const caption = document.createElement('caption');
-  const text = document.createTextNode(captionText);
-  caption.appendChild(text);
-  table.appendChild(caption);
-  return table;
-}
-
-/**
- * Append a valid dicom table to an input node.
- *
- * @param {Node} node The node to append to.
- * @returns {Node} The first table node appended to the input.
- */
-function appendValidTableNodes(node) {
-  const validTable0 = getTableNode(
-    'E.1-1', 'Command Fields');
-  node.appendChild(validTable0);
-  node.appendChild(getTableNode(
-    'E.2-1', 'Retired Command Fields'));
-  return validTable0;
+function commandFieldsTablesXml(rows) {
+  return table('E.1-1', 'Command Fields', rows) +
+    table('E.2-1', 'Retired Command Fields', []);
 }
 
 /**
@@ -94,142 +57,116 @@ function appendValidTableNodes(node) {
  *
  * @function module:tests/parser~DicomXMLParser
  */
-describe('#DicomXMLParser', () => {
+describe('DicomXMLParser', () => {
 
   test('throw when no book node', () => {
     const parser = new DicomXMLParser();
-    const node = document.createElement('div');
+    const doc = parseXml('<root></root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/No book node/);
   });
 
   test('throw when no book label', () => {
     const parser = new DicomXMLParser();
-    const node = document.createElement('div');
-    const book = document.createElement('book');
-    node.appendChild(book);
+    const doc = parseXml('<root><book></book></root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/No book label/);
   });
 
   test('throw when no book subtitle', () => {
     const parser = new DicomXMLParser();
-    const node = document.createElement('div');
-    const book = document.createElement('book');
-    book.setAttribute('label', 'PS3.66');
-    node.appendChild(book);
+    const doc = parseXml('<root><book label="PS3.66"></book></root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/No book subtitle/);
   });
 
   test('throw when no dicom prefix', () => {
     const parser = new DicomXMLParser();
-    const node = document.createElement('div');
-    const book = document.createElement('book');
-    const sub = document.createElement('subtitle');
-    const label = 'PS3.66';
-    book.setAttribute('label', label);
-    sub.appendChild(
-      document.createTextNode('DICOMx ' + label + ' 2020a -'));
-    book.appendChild(sub);
-    node.appendChild(book);
+    const doc = parseXml('<root>' +
+      bookXml('PS3.66', 'DICOMx PS3.66 2020a -') + '</root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/Missing DICOM standard version prefix./);
   });
 
   test('throw when no dicom version', () => {
     const parser = new DicomXMLParser();
-    const node = document.createElement('div');
-    const book = document.createElement('book');
-    const sub = document.createElement('subtitle');
-    const label = 'PS3.66';
-    book.setAttribute('label', label);
-    sub.appendChild(
-      document.createTextNode('DICOM ' + label + ' test'));
-    book.appendChild(sub);
-    node.appendChild(book);
+    const doc = parseXml('<root>' +
+      bookXml('PS3.66', 'DICOM PS3.66 test') + '</root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/Missing DICOM standard version./);
   });
 
   test('throw when unknown book label', () => {
     const parser = new DicomXMLParser();
-    const node = getBookNode('PS3.66');
+    const doc = parseXml('<root>' +
+      bookXml('PS3.66', 'DICOM PS3.66 2020a -') + '</root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/Unknown book label/);
   });
 
   test('throw when no table node', () => {
     const parser = new DicomXMLParser();
-    const node = getValidBookNode();
+    const doc = parseXml('<root>' + validBookXml() + '</root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/No table node/);
   });
 
   test('throw when bad table node', () => {
     const parser = new DicomXMLParser();
-    const node = getValidBookNode();
-    const table = document.createElement('table');
-    table.setAttribute('label', '7-77');
-    node.appendChild(table);
+    const doc = parseXml('<root>' + validBookXml() +
+      table('7-77', undefined, []) + '</root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/No table node/);
   });
 
   test('throw when no table node caption', () => {
     const parser = new DicomXMLParser();
-    const node = getValidBookNode();
-    const table = document.createElement('table');
-    table.setAttribute('label', 'E.1-1');
-    node.appendChild(table);
+    const doc = parseXml('<root>' + validBookXml() +
+      table('E.1-1', undefined, []) + '</root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/Empty node caption/);
   });
 
   test('throw when bad table node caption', () => {
     const parser = new DicomXMLParser();
-    const node = getValidBookNode();
-    const table = getTableNode('E.1-1', 'ahahah');
-    node.appendChild(table);
+    const doc = parseXml('<root>' + validBookXml() +
+      table('E.1-1', 'ahahah', []) + '</root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/The node caption is not the expected one/);
   });
 
   test('throw when empty tags', () => {
     const parser = new DicomXMLParser();
-    const node = getValidBookNode();
-    appendValidTableNodes(node);
+    const doc = parseXml('<root>' + validBookXml() +
+      commandFieldsTablesXml([]) + '</root>');
     const parseNode = function () {
-      parser.parseNode(node);
+      parser.parseNode(doc);
     };
     expect(parseNode).toThrow(/Empty tags/);
   });
 
   test('correct parse', () => {
     const parser = new DicomXMLParser();
-    const node = getValidBookNode();
-    const table = appendValidTableNodes(node);
-    const row = table.insertRow();
     const tag = {
       group: '0004',
       element: '1142',
@@ -240,15 +177,12 @@ describe('#DicomXMLParser', () => {
     // the source cell text includes zero-width spaces to check that they
     // get cleaned out of the parsed keyword (see `tag.keyword` above)
     const tagArray = getTagArray(tag, 'Specific​Character​Set​');
-    for (let i = 0; i < tagArray.length; ++i) {
-      const cell = row.insertCell();
-      const para = document.createElement('para');
-      const text = document.createTextNode(tagArray[i]);
-      para.appendChild(text);
-      cell.appendChild(para);
-    }
-    node.appendChild(table);
-    const result = parser.parseNode(node)[0];
+    const row = tr(tagArray.map(td));
+
+    const doc = parseXml('<root>' + validBookXml() +
+      commandFieldsTablesXml([row]) + '</root>');
+
+    const result = parser.parseNode(doc)[0];
     expect(result.raw[0]).toEqual(tag);
   });
 
