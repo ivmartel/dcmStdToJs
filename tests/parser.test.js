@@ -419,7 +419,7 @@ describe('DicomXMLParser.parseModules', () => {
   test('delegates to the PS3.3 module parser', () => {
     const parser = new DicomXMLParser();
     const doc = ps33Doc();
-    const expected = parsePs33Node(doc, 'origin');
+    const expected = parsePs33Node(doc, 'CT Image', 'origin');
     const result = parser.parseModules([doc], 'origin');
     expect(result).toEqual(expected);
   });

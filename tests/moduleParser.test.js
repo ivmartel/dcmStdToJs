@@ -79,7 +79,7 @@ describe('parsePs33Node', () => {
   test('throws when the CT Image IOD module table is missing', () => {
     const doc = parseXml('<root></root>');
     const call = function () {
-      parsePs33Node(doc);
+      parsePs33Node(doc, 'CT Image');
     };
     expect(call).toThrow(/No table node./);
   });
@@ -89,7 +89,7 @@ describe('parsePs33Node', () => {
       const doc = parseXml('<root>' +
         table('A.3-1', 'Wrong', [tr([])]) + '</root>');
       const call = function () {
-        parsePs33Node(doc);
+        parsePs33Node(doc, 'CT Image');
       };
       expect(call).toThrow(/The node caption is not the expected one/);
     });
@@ -101,7 +101,7 @@ describe('parsePs33Node', () => {
           tr([td('Patient'), td('<xref linkend="sect_C.7.1.1"/>')])
         ]) + '</root>');
       const call = function () {
-        parsePs33Node(doc);
+        parsePs33Node(doc, 'CT Image');
       };
       expect(call).toThrow(/Not the expected IOD module values size: 2/);
     });
@@ -124,7 +124,7 @@ describe('parsePs33Node', () => {
         mrImageFragment() + macroTableFragment() +
         '</root>');
       const call = function () {
-        parsePs33Node(doc);
+        parsePs33Node(doc, 'CT Image');
       };
       expect(call).toThrow(/The node caption is not the expected one/);
     });
@@ -144,7 +144,7 @@ describe('parsePs33Node', () => {
         mrImageFragment() + macroTableFragment() +
         '</root>');
 
-      const result = parsePs33Node(doc);
+      const result = parsePs33Node(doc, 'CT Image');
 
       expect(result[0].name).toEqual('CT Image IOD Modules');
       expect(result[0].raw).toEqual([]);
@@ -169,7 +169,7 @@ describe('parsePs33Node', () => {
         mrImageFragment() + macroTableFragment() +
         '</root>');
 
-      const result = parsePs33Node(doc);
+      const result = parsePs33Node(doc, 'CT Image');
 
       expect(result[0].name).toEqual('CT Image IOD Modules');
       expect(result[0].raw).toEqual([]);
@@ -209,10 +209,20 @@ describe('parsePs33Node', () => {
             td('(0008,010B)'),
             td('1C'),
             td('Required if Context Identifier (0008,010F) is present.')]),
-          // type '2': filtered out by the '1|1C' type regex
+          // type '2': kept by the '1|1C|2|2C' type regex
+          tr([td('Patient Comments'),
+            td('(0010,4000)'),
+            td('2'),
+            td('User-defined comments.')]),
+          // type '2C': kept by the '1|1C|2|2C' type regex
+          tr([td('Ethnic Group'),
+            td('(0010,2160)'),
+            td('2C'),
+            td('Ethnic group of the patient.')]),
+          // type '3': filtered out by the '1|1C|2|2C' type regex
           tr([td('Some Optional Attribute'),
             td('(0010,0050)'),
-            td('2'),
+            td('3'),
             td('Just a description.')]),
           // sequence parent (type '1') with one nested item
           tr([td('Referenced Study Sequence'),
@@ -236,10 +246,10 @@ describe('parsePs33Node', () => {
         mrImageFragment() + macroTableFragment() +
         '</root>');
 
-      const result = parsePs33Node(doc, 'part03.xml');
+      const result = parsePs33Node(doc, 'CT Image', 'part03.xml');
 
-      expect(result).toHaveLength(2);
-      const [ctResult, mrResult] = result;
+      expect(result).toHaveLength(1);
+      const [ctResult] = result;
 
       expect(ctResult.name).toEqual('CT Image IOD Modules');
       expect(ctResult.origin).toEqual('part03.xml');
@@ -272,6 +282,18 @@ describe('parsePs33Node', () => {
               desc: ''
             },
             {
+              name: 'Patient Comments',
+              tag: '(0010,4000)',
+              type: '2',
+              desc: 'User-defined comments.'
+            },
+            {
+              name: 'Ethnic Group',
+              tag: '(0010,2160)',
+              type: '2C',
+              desc: 'Ethnic group of the patient.'
+            },
+            {
               name: 'Referenced Study Sequence',
               tag: '(0008,1110)',
               type: '1',
@@ -302,25 +324,6 @@ describe('parsePs33Node', () => {
       expect(JSON.parse(ctResult.data)).toEqual({
         Patient: expectedCt[0],
         'Conditional Module': expectedCt[1]
-      });
-
-      expect(mrResult.name).toEqual('MR Image IOD Modules');
-      expect(mrResult.origin).toEqual('part03.xml');
-      const expectedMr = [
-        {
-          name: 'MR Specific Module',
-          attributes: [
-            {name: 'MR Attribute',
-              tag: '(0018,0020)',
-              type: '1',
-              desc: 'MR desc.'},
-            codeValueAttribute
-          ]
-        }
-      ];
-      expect(mrResult.raw).toEqual(expectedMr);
-      expect(JSON.parse(mrResult.data)).toEqual({
-        'MR Specific Module': expectedMr[0]
       });
     });
 

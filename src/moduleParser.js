@@ -58,67 +58,85 @@ export class DicomModuleAttribute {
 }
 
 /**
+ * IOD list.
+ *
+ * For example CT:
+ * {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_A.3.3.html#table_A.3-1}.
+ *
+ */
+export const iodList = [
+  {name: 'CT Image', label: 'table_A.3-1'},
+  {name: 'MR Image', label: 'table_A.4-1'},
+  {name: 'NM Image', label: 'table_A.5-1'},
+  {name: 'US Image', label: 'table_A.6-1'},
+  {name: 'PET Image', label: 'table_A.21.3-1'},
+  {
+    name: 'Segmentation',
+    label: 'table_A.51-1',
+    fgLabel: 'table_A.51-2'
+  },
+  {name: 'RT Structure Set', label: 'table_A.19.3-1'},
+];
+
+/**
  * Parse a PS3.3 node: Information Object Definitions (IODs).
  * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part03/PS3.3.html}.
  *
  * @param {Document} partNode The main DOM node.
+ * @param {string} iodName The name of the IOD.
  * @param {string} [origin] Optional node origin.
  * @returns {DicomParseResult[]} A result object {name, origin, raw, data}.
  */
-export function parsePs33Node(partNode, origin) {
+export function parsePs33Node(partNode, iodName, origin) {
   const result = [];
   // cache of macro tables, local to this parse call so it cannot
   // leak stale content across different partNode/version parses
   const macros = {};
-  // CT: https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_A.3.3.html#table_A.3-1
-  const iodList = [
-    {name: 'CT Image', label: 'table_A.3-1'},
-    {name: 'MR Image', label: 'table_A.4-1'},
-    // {name: 'NM Image', label: 'table_A.5-1'},
-    // {name: 'US Image', label: 'table_A.6-1'},
-    // {name: 'PET Image', label: 'table_A.21.3-1'},
-    // {
-    //   name: 'Segmentation',
-    //   label: 'table_A.51-1',
-    //   fgLabel: 'table_A.51-2'
-    // }
-  ];
 
-  for (const iod of iodList) {
-    const usageRegex = /M|C/g;
-    let fgModulesProperties = null;
-    // functional group modules
-    if (typeof iod.fgLabel !== 'undefined') {
-      const fgModulesDefs = parseModuleListNode(
-        partNode.querySelector(getSelector(iod.fgLabel)),
-        partNode,
-        iod.name + ' Functional Group Macros',
-        usageRegex
-      );
-      fgModulesProperties =
-        parseModulesFromList(fgModulesDefs, partNode, macros);
-    }
-    // IOD modules
-    const iodModulesDefs = parseModuleListNode(
-      partNode.querySelector(getSelector(iod.label)),
+  // M (mandatory), C (conditional), U (user)
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part03/chapter_A.html#sect_A.1.3
+  const usageRegex = /M|C/g;
+  // required: 1, 1C; conditional: 2, 2C; optional: 3
+  // https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_7.4.html
+  const typeRegex = /1|1C|2|2C/g;
+
+  const iod = iodList.find(item => item.name === iodName);
+  if (typeof iod === 'undefined') {
+    throw new Error('Unknown IOD: ' + iodName);
+  }
+
+  let fgModulesProperties = null;
+  // functional group modules
+  if (typeof iod.fgLabel !== 'undefined') {
+    const fgModulesDefs = parseModuleListNode(
+      partNode.querySelector(getSelector(iod.fgLabel)),
       partNode,
-      iod.name + ' IOD Modules',
+      iod.name + ' Functional Group Macros',
       usageRegex
     );
-    const modulesProperties = parseModulesFromList(
-      iodModulesDefs, partNode, macros, fgModulesProperties);
-
-    const typeRegex = /1|1C/g;
-    const modules = modulePropertiesListToObject(
-      modulesProperties, typeRegex);
-
-    result.push({
-      name: iod.name + ' IOD Modules',
-      origin: origin,
-      raw: modules,
-      data: JSON.stringify(simplifyModules(modules), null, '  ')
-    });
+    fgModulesProperties =
+      parseModulesFromList(fgModulesDefs, partNode, macros);
   }
+  // IOD modules
+  const iodModulesDefs = parseModuleListNode(
+    partNode.querySelector(getSelector(iod.label)),
+    partNode,
+    iod.name + ' IOD Modules',
+    usageRegex
+  );
+  const modulesProperties = parseModulesFromList(
+    iodModulesDefs, partNode, macros, fgModulesProperties);
+
+  const modules = modulePropertiesListToObject(
+    modulesProperties, typeRegex);
+
+  result.push({
+    name: iod.name + ' IOD Modules',
+    origin: origin,
+    raw: modules,
+    data: JSON.stringify(simplifyModules(modules), null, '  ')
+  });
+
   return result;
 }
 

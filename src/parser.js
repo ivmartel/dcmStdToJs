@@ -59,7 +59,7 @@ export class DicomXMLParser {
     let result;
 
     if (label === 'PS3.3') {
-      result = parsePs33Node(partNode, origin);
+      result = parsePs33Node(partNode, 'CT Image', origin);
     } else if (label === 'PS3.5') {
       result = parsePs35Node(partNode, origin);
     } else if (label === 'PS3.6') {
@@ -202,7 +202,7 @@ export class DicomXMLParser {
     let result;
 
     if (label === 'PS3.3') {
-      result = parsePs33Node(parts[0], origin);
+      result = parsePs33Node(parts[0], 'CT Image', origin);
     } else {
       throw new Error('Wrong label for module parse: ' + label);
     }
