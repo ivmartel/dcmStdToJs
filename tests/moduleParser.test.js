@@ -256,7 +256,7 @@ describe('parsePs33Node', () => {
 
       const codeValueAttribute = {
         name: 'Code Value',
-        tag: '(0008,0100)',
+        tag: '00080100',
         type: '1',
         desc: 'Macro attr desc.'
       };
@@ -267,14 +267,14 @@ describe('parsePs33Node', () => {
           attributes: [
             {
               name: 'Patient\'s Sex',
-              tag: '(0010,0040)',
+              tag: '00100040',
               type: '1',
               enum: ['M', 'F', 'O'],
               desc: 'Patient\'s sex.'
             },
             {
               name: 'Context Group Extension Flag',
-              tag: '(0008,010B)',
+              tag: '0008010B',
               type: '1C',
               condition: ['Context Identifier',
                 '(0008,010F)',
@@ -283,25 +283,25 @@ describe('parsePs33Node', () => {
             },
             {
               name: 'Patient Comments',
-              tag: '(0010,4000)',
+              tag: '00104000',
               type: '2',
               desc: 'User-defined comments.'
             },
             {
               name: 'Ethnic Group',
-              tag: '(0010,2160)',
+              tag: '00102160',
               type: '2C',
               desc: 'Ethnic group of the patient.'
             },
             {
               name: 'Referenced Study Sequence',
-              tag: '(0008,1110)',
+              tag: '00081110',
               type: '1',
               desc: 'Sequence description.',
               items: [
                 {
                   name: 'Referenced SOP Class UID',
-                  tag: '(0008,1150)',
+                  tag: '00081150',
                   type: '1',
                   desc: 'Child desc.'
                 }
@@ -314,7 +314,7 @@ describe('parsePs33Node', () => {
           name: 'Conditional Module',
           attributes: [
             {name: 'Some Attribute',
-              tag: '(0018,0010)',
+              tag: '00180010',
               type: '1',
               desc: 'Desc.'}
           ]

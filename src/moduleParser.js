@@ -417,7 +417,10 @@ function modulePropertiesToObject(properties, typeRegex) {
   }
 
   const name = properties[0][0];
-  const tag = properties[1][0];
+  // tag as (XXXX,YYYY)
+  const longTag = properties[1][0];
+  // tag as XXXXYYYY
+  const tag = longTag.substring(1, 5) + longTag.substring(6, 10);
   const type = properties[2][0];
 
   // Type property:
