@@ -1,4 +1,4 @@
-import {describe, expect, test, vi} from 'vitest';
+import {describe, expect, test, vi, beforeEach, afterEach} from 'vitest';
 
 import {parsePs35Node} from '../src/vrParser.js';
 import {
@@ -117,6 +117,18 @@ function getPs35Doc(opts) {
 
 describe('parsePs35Node', () => {
 
+  // VR_ROWS includes an unrecognized VR (AT), which logs a warning; mock
+  // it in every test so it never spills into the test output.
+  let log;
+
+  beforeEach(() => {
+    log = vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    log.mockRestore();
+  });
+
   test('throws when the VR table node is missing', () => {
     const doc = getPs35Doc({
       specialCaption: 'Data Element with Explicit VR of OB',
@@ -179,7 +191,6 @@ describe('parsePs35Node', () => {
   test(
     'parses VRs, 32-bit VL VRs (>= 2019e) and character set VRs',
     () => {
-      const log = vi.spyOn(console, 'log').mockImplementation(() => {});
       const doc = getPs35Doc({
         version: '2019e',
         vrRows: VR_ROWS,
@@ -223,14 +234,11 @@ describe('parsePs35Node', () => {
         ['SH', 'LO', 'UC', 'ST', 'LT', 'UT', 'PN']);
       expect(JSON.parse(charSetVrResult.data)).toEqual(
         ['SH', 'LO', 'UC', 'ST', 'LT', 'UT', 'PN']);
-
-      log.mockRestore();
     });
 
   test(
     'uses the 32-bit VL VRs directly (not filtered) before 2019e',
     () => {
-      const log = vi.spyOn(console, 'log').mockImplementation(() => {});
       const doc = getPs35Doc({
         version: '2019a',
         vrRows: VR_ROWS,
@@ -246,8 +254,6 @@ describe('parsePs35Node', () => {
       // before 2019e: the special table's VR list is used as-is
       expect(vrVl32Result.raw).toEqual(
         ['OB', 'OW', 'OF', 'OD', 'SQ', 'UT', 'UN']);
-
-      log.mockRestore();
     });
 
 });
