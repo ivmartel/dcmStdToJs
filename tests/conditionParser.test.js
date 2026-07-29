@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 
 import {extractCondition} from '../src/conditionParser.js';
-import conditions from '../src/conditions.json' with {type: 'json'};
+import conditions from './conditions.json' with {type: 'json'};
 
 /**
  * Tests for the 'extractCondition' function of 'conditionParser.js', driven
