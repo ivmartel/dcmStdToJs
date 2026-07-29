@@ -37,6 +37,8 @@ export class DicomTag {
  * Parse a PS3.6 node: Data Dictionary.
  * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part06/PS3.6.html}.
  *
+ * See conversion changes in {@link adaptTagsForDwv}.
+ *
  * @param {Document} partNode The main DOM node.
  * @param {string} [origin] Optional node origin.
  * @returns {DicomParseResult[]} The parse results.
@@ -76,6 +78,8 @@ export function parsePs36TagsNode(partNode, origin) {
 /**
  * Parse a PS3.7 node: Message Exchange.
  * See: {@link https://dicom.nema.org/medical/dicom/current/output/chtml/part07/PS3.7.html}.
+ *
+ * See conversion changes in {@link adaptTagsForDwv}.
  *
  * @param {Document} partNode The main DOM node.
  * @param {string} [origin] Optional node origin.
@@ -191,9 +195,14 @@ function getMultiCompare(properties) {
 
 /**
  * Adapt tags:
- *   - replace 'x' in groups and elements,
- *   - add GenericGroupLength to groups,
- *   - replace non single VRs.
+ * - (vr) 'See Note' -> 'NONE',
+ * - (vr) 'OB or OW' -> 'ox',
+ * - (vr) 'US or SS' -> 'xs',
+ * - (vr) 'US or OW' -> 'xx',
+ * - (vr) 'US or SS or OW' -> 'xs',
+ * - added 'GenericGroupLength' element to each group.
+ * - tag numbers with 'xx' were replaced with '00', 'xxx' with '001' and
+ *  'xxxx' with '0004'.
  *
  * @param {DicomTag[]} inputTags An array of tags.
  * @returns {DicomTag[]} The adapted tags as a new array.
