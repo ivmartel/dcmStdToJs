@@ -105,7 +105,7 @@ function parseContentNode(paraNode, partNode) {
 
   // link to section with defined terms
   // (for ex in module attributes description)
-  const regex = /See linkend=.+ for Defined Terms\./g;
+  const regex = /See linkend=.+ for (Defined Terms|specialization)\./g;
   const match = content.match(regex);
   if (match && match.length === 1) {
     let foundTermsList = false;

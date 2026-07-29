@@ -549,8 +549,11 @@ function simplifyModules(modules) {
           if (typeof res[group][element] === 'undefined') {
             res[group][element] = resMod[group][element];
           } else {
-            console.log('Tag',
-              group, element, 'duplicate in', module.name);
+            // check if attribute has more info for tag
+            if (typeof res[group][element][1] === 'undefined' &&
+              typeof resMod[group][element][1] !== 'undefined') {
+              res[group][element][1] = resMod[group][element][1];
+            }
           }
         }
       }
