@@ -1,0 +1,234 @@
+[
+  {
+    "text": "Required if either Patient's Birth Date in Alternative Calendar (0010,0033) or Patient's Alternative Death Date in Calendar (0010,0034) is present.",
+    "condition": "Required if either Patient's Birth Date in Alternative Calendar (0010,0033) or Patient's Alternative Death Date in Calendar (0010,0034) is present."
+  },
+  {
+    "text": "Required if the Patient is a non-human organism and if Patient Species Code Sequence (0010,2202) is not present. May be present otherwise.",
+    "condition": "Required if the Patient is a non-human organism and if Patient Species Code Sequence (0010,2202) is not present."
+  },
+  {
+    "text": "Required if the Patient is a non-human organism and if Patient Species Description (0010,2201) is not present. May be present otherwise.",
+    "condition": "Required if the Patient is a non-human organism and if Patient Species Description (0010,2201) is not present."
+  },
+  {
+    "text": "Shall be present if the code value length is 16 characters or less, and the code value is not a URN or URL.",
+    "condition": "Shall be present if the code value length is 16 characters or less, and the code value is not a URN or URL."
+  },
+  {
+    "text": "Shall be present if Code Value (0008,0100) or Long Code Value (0008,0119) is present. May be present otherwise.",
+    "condition": "tag(0008,0100) !== undefined || tag(0008,0119) !== undefined"
+  },
+  {
+    "text": "See linkend=\"sect_8.2\". Required if the value of Coding Scheme Designator (0008,0102) is present and is not sufficient to identify the Code Value (0008,0100) or Long Code Value (0008,0119) unambiguously. Shall not be present if Coding Scheme Designator (0008,0102) is absent. May be present otherwise.",
+    "condition": "Required if the value of Coding Scheme Designator (0008,0102) is present and is not sufficient to identify the Code Value (0008,0100) or Long Code Value (0008,0119) unambiguously."
+  },
+  {
+    "text": "Shall be present if Code Value (0008,0100) is not present and the Code Value is not a URN or URL.",
+    "condition": "Shall be present if Code Value (0008,0100) is not present and the Code Value is not a URN or URL."
+  },
+  {
+    "text": "Shall be present if Code Value (0008,0100) is not present and the Code Value is a URN or URL.",
+    "condition": "Shall be present if Code Value (0008,0100) is not present and the Code Value is a URN or URL."
+  },
+  {
+    "text": "See linkend=\"sect_8.4\". Required if Context Identifier (0008,010F) is present.",
+    "condition": "tag(0008,010F) !== undefined"
+  },
+  {
+    "text": "Required if Context Identifier (0008,010F) is present.",
+    "condition": "tag(0008,010F) !== undefined"
+  },
+  {
+    "text": "See linkend=\"sect_8.7\". Required if the value of Context Group Extension Flag (0008,010B) is \"Y\".",
+    "condition": "tag(0008,010B).value === 'Y'"
+  },
+  {
+    "text": "Required if the value of Context Group Extension Flag (0008,010B) is \"Y\".",
+    "condition": "tag(0008,010B).value === 'Y'"
+  },
+  {
+    "text": "Required if the Patient is a non-human organism and if Patient Breed Code Sequence (0010,2293) is empty. May be present otherwise.",
+    "condition": "Required if the Patient is a non-human organism and if Patient Breed Code Sequence (0010,2293) is empty."
+  },
+  {
+    "text": "Required if the Patient is a non-human organism.",
+    "condition": "Required if the Patient is a non-human organism."
+  },
+  {
+    "text": "Required if the Patient is a non-human organism. May be present otherwise.",
+    "condition": "Required if the Patient is a non-human organism."
+  },
+  {
+    "text": "Required if Responsible Person is present and has a value.",
+    "condition": "Required if Responsible Person is present and has a value."
+  },
+  {
+    "text": "Required if Patient is a non-human organism. May be present otherwise.",
+    "condition": "Required if Patient is a non-human organism."
+  },
+  {
+    "text": "Required if Patient Identity Removed (0012,0062) is present and has a value of YES and De-identification Method Code Sequence (0012,0064) is not present. May be present otherwise.",
+    "condition": "Required if Patient Identity Removed (0012,0062) is present and has a value of YES and De-identification Method Code Sequence (0012,0064) is not present."
+  },
+  {
+    "text": "Required if Patient Identity Removed (0012,0062) is present and has a value of YES and De-identification Method (0012,0063) is not present. May be present otherwise.",
+    "condition": "Required if Patient Identity Removed (0012,0062) is present and has a value of YES and De-identification Method (0012,0063) is not present."
+  },
+  {
+    "text": "Laterality of (paired) body part examined. Required if the body part examined is a paired structure and Image Laterality (0020,0062) or Frame Laterality (0020,9072) or Measurement Laterality (0024,0113) are not present.",
+    "condition": "Required if the body part examined is a paired structure and Image Laterality (0020,0062) or Frame Laterality (0020,9072) or Measurement Laterality (0024,0113) are not present."
+  },
+  {
+    "text": "Required if the Patient is a non-human organism and the anatomical Frame of Reference is not bipedal. May be present otherwise. See linkend=\"sect_C.7.6.1.1.1\" and linkend=\"sect_C.7.6.2.1.1\".",
+    "condition": "Required if the Patient is a non-human organism and the anatomical Frame of Reference is not bipedal."
+  },
+  {
+    "text": "Required if synchronization channel or trigger is encoded in a waveform in this SOP Instance.",
+    "condition": "Required if synchronization channel or trigger is encoded in a waveform in this SOP Instance."
+  },
+  {
+    "text": "Required if Pixel Padding Range Limit (0028,0121) is present and either Pixel Data (7FE0,0010) or Pixel Data Provider URL (0028,7FE0) is present. May be present otherwise only if Pixel Data (7FE0,0010) or Pixel Data Provider URL (0028,7FE0) is present.",
+    "condition": "tag(0028,0121) !== undefined && tag(7FE0,0010) !== undefined || tag(0028,7FE0) !== undefined"
+  },
+  {
+    "text": "Patient direction of the rows and columns of the image. Required if image does not require Image Orientation (Patient) (0020,0037) and Image Position (Patient) (0020,0032) or if image does not require Image Orientation (Slide) (0048,0102). May be present otherwise. See linkend=\"sect_C.7.6.1.1.1\" for further explanation.",
+    "condition": "Required if image does not require Image Orientation (Patient) (0020,0037) and Image Position (Patient) (0020,0032) or if image does not require Image Orientation (Slide) (0048,0102)."
+  },
+  {
+    "text": "Required if image is part of a Series in which the images are temporally related. May be present otherwise.",
+    "condition": "Required if image is part of a Series in which the images are temporally related."
+  },
+  {
+    "text": "Indicates whether the pixel data are encoded color-by-plane or color-by-pixel. Required if Samples per Pixel (0028,0002) has a value greater than 1. See linkend=\"sect_C.7.6.3.1.3\" for further explanation.",
+    "condition": "tag(0028,0002).value > 1"
+  },
+  {
+    "text": "Ratio of the vertical size and horizontal size of the pixels in the image specified by a pair of integer values where the first value is the vertical pixel size, and the second value is the horizontal pixel size. Required if the aspect ratio values do not have a ratio of 1:1 and the physical pixel spacing is not specified by Pixel Spacing (0028,0030), or Imager Pixel Spacing (0018,1164) or Nominal Scanned Pixel Spacing (0018,2010), either for the entire Image or per-frame in a Functional Group Macro. See linkend=\"sect_C.7.6.3.1.7\".",
+    "condition": "Required if the aspect ratio values do not have a ratio of 1:1 and the physical pixel spacing is not specified by Pixel Spacing (0028,0030), or Imager Pixel Spacing (0018,1164) or Nominal Scanned Pixel Spacing (0018,2010), either for the entire Image or per-frame in a Functional Group Macro."
+  },
+  {
+    "text": "Specifies the format of the Red Palette Color Lookup Table Data (0028,1201). Required if Photometric Interpretation (0028,0004) has a value of PALETTE COLOR or Pixel Presentation (0008,9205) at the image level equals COLOR or MIXED. See linkend=\"sect_C.7.6.3.1.5\" for further explanation.",
+    "condition": "tag(0028,0004).value === 'PALETTE COLOR' || (tag(0008,9205).value === 'COLOR' || tag(0008,9205).value === 'MIXED')"
+  },
+  {
+    "text": "Specifies the format of the Green Palette Color Lookup Table Data (0028,1202). Required if Photometric Interpretation (0028,0004) has a value of PALETTE COLOR or Pixel Presentation (0008,9205) at the image level equals COLOR or MIXED. See linkend=\"sect_C.7.6.3.1.5\" for further explanation.",
+    "condition": "tag(0028,0004).value === 'PALETTE COLOR' || (tag(0008,9205).value === 'COLOR' || tag(0008,9205).value === 'MIXED')"
+  },
+  {
+    "text": "Specifies the format of the Blue Palette Color Lookup Table Data (0028,1203). Required if Photometric Interpretation (0028,0004) has a value of PALETTE COLOR or Pixel Presentation (0008,9205) at the image level equals COLOR or MIXED. See linkend=\"sect_C.7.6.3.1.5\" for further explanation.",
+    "condition": "tag(0028,0004).value === 'PALETTE COLOR' || (tag(0008,9205).value === 'COLOR' || tag(0008,9205).value === 'MIXED')"
+  },
+  {
+    "text": "Red Palette Color Lookup Table Data. Required if Photometric Interpretation (0028,0004) has a value of PALETTE COLOR or Pixel Presentation (0008,9205) at the image level equals COLOR or MIXED. See linkend=\"sect_C.7.6.3.1.6\" for further explanation.",
+    "condition": "tag(0028,0004).value === 'PALETTE COLOR' || (tag(0008,9205).value === 'COLOR' || tag(0008,9205).value === 'MIXED')"
+  },
+  {
+    "text": "Green Palette Color Lookup Table Data. Required if Photometric Interpretation (0028,0004) has a value of PALETTE COLOR or Pixel Presentation (0008,9205) at the image level equals COLOR or MIXED. See linkend=\"sect_C.7.6.3.1.6\" for further explanation.",
+    "condition": "tag(0028,0004).value === 'PALETTE COLOR' || (tag(0008,9205).value === 'COLOR' || tag(0008,9205).value === 'MIXED')"
+  },
+  {
+    "text": "Blue Palette Color Lookup Table Data. Required if Photometric Interpretation (0028,0004) has a value of PALETTE COLOR or Pixel Presentation (0008,9205) at the image level equals COLOR or MIXED. See linkend=\"sect_C.7.6.3.1.6\" for further explanation.",
+    "condition": "tag(0028,0004).value === 'PALETTE COLOR' || (tag(0008,9205).value === 'COLOR' || tag(0008,9205).value === 'MIXED')"
+  },
+  {
+    "text": "Required if Pixel Data Provider URL (0028,7FE0) is not present.",
+    "condition": "tag(0028,7FE0) === undefined"
+  },
+  {
+    "text": "Required if pixel padding is to be defined as a range rather than a single value.",
+    "condition": "Required if pixel padding is to be defined as a range rather than a single value."
+  },
+  {
+    "text": "Required if Extended Offset Table (7FE0,0001) is present and every frame is encoded as a single fragment.",
+    "condition": "Required if Extended Offset Table (7FE0,0001) is present and every frame is encoded as a single fragment."
+  },
+  {
+    "text": "Required if the Rescale Type is not HU (Hounsfield Units), or Multi-energy CT Acquisition (0018,9361) is YES. May be present otherwise.",
+    "condition": "Required if the Rescale Type is not HU (Hounsfield Units), or Multi-energy CT Acquisition (0018,9361) is YES."
+  },
+  {
+    "text": "Required if Water Equivalent Diameter (0018,1271) is present.",
+    "condition": "tag(0018,1271) !== undefined"
+  },
+  {
+    "text": "Required if one Derivation Code Sequence (0008,9215) Item value is (113097, DCM, \"Multi-energy proportional weighting\"). May be present otherwise.",
+    "condition": "Required if one Derivation Code Sequence (0008,9215) Item value is (113097, DCM, \"Multi-energy proportional weighting\")."
+  },
+  {
+    "text": "Required if Multi-energy Source Technique (0018,9368) is \"SWITCHING_SOURCE\".",
+    "condition": "tag(0018,9368).value === 'SWITCHING_SOURCE'"
+  },
+  {
+    "text": "Required if Multi-energy Detector Type (0018,9372) is PHOTON_COUNTING. May be present otherwise.",
+    "condition": "tag(0018,9372).value === 'PHOTON_COUNTING'"
+  },
+  {
+    "text": "Required if Multi-energy CT Acquisition (0018,9361) is YES.",
+    "condition": "tag(0018,9361).value === 'YES'"
+  },
+  {
+    "text": "Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL, or if Image Type (0008,0008) Value 1 is ORIGINAL and Multi-energy CT Acquisition (0018,9361) is YES. May be present otherwise.",
+    "condition": "Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL, or if Image Type (0008,0008) Value 1 is ORIGINAL and Multi-energy CT Acquisition (0018,9361) is YES."
+  },
+  {
+    "text": "Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL or Image Type (0008,0008) Value 1 is ORIGINAL. May be present otherwise.",
+    "condition": "Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL or Image Type (0008,0008) Value 1 is ORIGINAL."
+  },
+  {
+    "text": "Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL or Image Type (0008,0008) Value 1 is ORIGINAL, and the value of Filter Type (0018,1160) is other than NONE. May be present otherwise.",
+    "condition": "Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL or Image Type (0008,0008) Value 1 is ORIGINAL, and the value of Filter Type (0018,1160) is other than NONE."
+  },
+  {
+    "text": "Required if Required if Frame Type (0008,9007) Value 4 of this frame is ENERGY_PROP_WT or Image Type (0008,0008) Value 4 is ENERGY_PROP_WT. May be present otherwise.",
+    "condition": "Required if Required if Frame Type (0008,9007) Value 4 of this frame is ENERGY_PROP_WT or Image Type (0008,0008) Value 4 is ENERGY_PROP_WT."
+  },
+  {
+    "text": "Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL or Image Type (0008,0008) Value 1 is ORIGINAL, and Acquisition Type (0018,9302) is other than CONSTANT_ANGLE.",
+    "condition": "Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL or Image Type (0008,0008) Value 1 is ORIGINAL, and Acquisition Type (0018,9302) is other than CONSTANT_ANGLE."
+  },
+  {
+    "text": "Required if Image Type (0008,0008) Value 4 in the CT Image IOD, Image Type (0008,0008) Value 5 in the Enhanced CT Image IOD or Frame Type (0008,9007) Value 5 in the Enhanced CT Image IOD Frame is VMI. May be present otherwise.",
+    "condition": "Required if Image Type (0008,0008) Value 4 in the CT Image IOD, Image Type (0008,0008) Value 5 in the Enhanced CT Image IOD or Frame Type (0008,9007) Value 5 in the Enhanced CT Image IOD Frame is VMI."
+  },
+  {
+    "text": "Required if Image Type (0008,0008) Value 4 in the CT Image IOD, Image Type (0008,0008) Value 5 in the Enhanced CT Image IOD or Frame Type (0008,9007) Value 5 in the Enhanced CT Image IOD Frame is EQUAL to VMI. May be present otherwise.",
+    "condition": "Required if Image Type (0008,0008) Value 4 in the CT Image IOD, Image Type (0008,0008) Value 5 in the Enhanced CT Image IOD or Frame Type (0008,9007) Value 5 in the Enhanced CT Image IOD Frame is EQUAL to VMI."
+  },
+  {
+    "text": "Required if an expanded or replacement character set is used.",
+    "condition": "Required if an expanded or replacement character set is used."
+  },
+  {
+    "text": "Required if application level confidentiality is needed and certain recipients are allowed to decrypt all or portions of the Encrypted Attributes Data Set. See linkend=\"sect_C.12.1.1.4.1\".",
+    "condition": "Required if application level confidentiality is needed and certain recipients are allowed to decrypt all or portions of the Encrypted Attributes Data Set."
+  },
+  {
+    "text": "Required if unencapsulated HL7 Structured Documents are referenced within the Instance. Every such document so referenced is required to have a corresponding Item in this Sequence.",
+    "condition": "Required if unencapsulated HL7 Structured Documents are referenced within the Instance."
+  },
+  {
+    "text": "Required if the Instance has ever been converted from its source form as the result of a C-MOVE operation with a specific view.",
+    "condition": "Required if the Instance has ever been converted from its source form as the result of a C-MOVE operation with a specific view."
+  },
+  {
+    "text": "Required if this Instance was created by conversion from a DICOM source, and Conversion Source Attributes Sequence (0020,9172) is not present in an Item of Shared Functional Groups Sequence (5200,9229) or Per-Frame Functional Groups Sequence (5200,9230).",
+    "condition": "Required if this Instance was created by conversion from a DICOM source, and Conversion Source Attributes Sequence (0020,9172) is not present in an Item of Shared Functional Groups Sequence (5200,9229) or Per-Frame Functional Groups Sequence (5200,9230)."
+  },
+  {
+    "text": "Required if the Referenced SOP Instance is a multi-frame image and the reference does not apply to all frames, and Referenced Segment Number (0062,000B) is not present.",
+    "condition": "Required if the Referenced SOP Instance is a multi-frame image and the reference does not apply to all frames, and Referenced Segment Number (0062,000B) is not present."
+  },
+  {
+    "text": "Required if the Referenced SOP Instance is a Segmentation or Surface Segmentation and the reference does not apply to all segments and Referenced Frame Number (0008,1160) is not present.",
+    "condition": "Required if the Referenced SOP Instance is a Segmentation or Surface Segmentation and the reference does not apply to all segments and Referenced Frame Number (0008,1160) is not present."
+  },
+  {
+    "text": "Required if this instance is a Performed Procedure Protocol that resulted from a Defined Procedure Protocol. May be present otherwise.",
+    "condition": "Required if this instance is a Performed Procedure Protocol that resulted from a Defined Procedure Protocol."
+  },
+  {
+    "text": "Required if a related Performed Procedure Protocol SOP Instance was created.",
+    "condition": "Required if a related Performed Procedure Protocol SOP Instance was created."
+  }
+]

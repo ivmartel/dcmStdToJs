@@ -4,6 +4,7 @@ import {
   getLinkend,
   parseTableNode
 } from './genericParser.js';
+import {extractCondition} from './conditionParser.js';
 
 /**
  * @import {DicomParseResult} from './parser.js';
@@ -236,47 +237,6 @@ function extractEnum(str) {
     result.enum = str.substring(start + 5, end).split(',');
   }
 
-  return result;
-}
-
-/**
- * Extract condition arguments from a string.
- *
- * @param {string} str The string to extract the condition from.
- * @returns {object} An object containing the input string ('str')
- *   either in full or without the condition if found and
- *   the condition ('condition') if found.
- */
-function extractCondition(str) {
-  const result = {str: str};
-
-  const reqIndex = str.indexOf('Required if');
-  if (reqIndex !== -1) {
-    let gotConditionMatch = false;
-    // 'Required if Context Identifier (0008,010F) is present.'
-    const regex = /Required if ([\w\s]+) (\([\dA-F]{4},[\dA-F]{4}\)) ([\w\s]+)\./g;
-    const matches = [...str.matchAll(regex)];
-    if (matches.length !== 0 && matches[0].length === 4) {
-      if (matches[0][3] === 'is present' ||
-        matches[0][3] === 'is not present' ||
-        matches[0][3].startsWith('has a value') ||
-        matches[0][3].startsWith('is')) {
-        gotConditionMatch = true;
-        // condition without first match element
-        result.condition = matches[0].slice(1);
-        // remove condition from input
-        result.str = str.replace(matches[0][0], '');
-      }
-    }
-
-    if (!gotConditionMatch) {
-      // condition
-      result.condition = str.substring(reqIndex);
-      // console.log('Cannot extract condition from: ', result.condition);
-      // remove condition from input
-      result.str = str.substring(0, reqIndex);
-    }
-  }
   return result;
 }
 
@@ -571,14 +531,65 @@ function modulePropertiesListToObject(properties, typeRegex) {
  * Simplify modules.
  *
  * @param {DicomModule[]} modules The modules.
- * @returns {Record<string, DicomModule>} Simplified modules
- *  indexed by value.
+ * @returns {Record<string, Record<string, string[]>>} Simplified modules
+ *   indexed by tag group then element.
  */
 function simplifyModules(modules) {
-  /** @type {Record<string, DicomModule>} */
+  /** @type {Record<string, Record<string, string[]>>} */
   const res = {};
   for (const module of modules) {
-    res[module.name] = module;
+    const resMod = simplifyAttribute(module.attributes);
+    const groups = Object.keys(resMod);
+    for (const group of groups) {
+      if (typeof res[group] === 'undefined') {
+        res[group] = resMod[group];
+      } else {
+        const elements = Object.keys(resMod[group]);
+        for (const element of elements) {
+          if (typeof res[group][element] === 'undefined') {
+            res[group][element] = resMod[group][element];
+          } else {
+            console.log('Tag',
+              group, element, 'duplicate in', module.name);
+          }
+        }
+      }
+    }
+  }
+  return res;
+}
+
+/**
+ * Simplify attributes.
+ *
+ * @param {DicomModuleAttribute[]} attributes The attributes.
+ * @returns {Record<string, Record<string, string[]>>} Simplified attributes
+ *   indexed by tag group then element.
+ */
+function simplifyAttribute(attributes) {
+  /** @type {Record<string, Record<string, string[]>>} */
+  const res = {};
+  for (const attribute of attributes) {
+    const tag = attribute.tag;
+    const group = tag.substring(0, 4);
+    if (typeof res[group] === 'undefined') {
+      res[group] = {};
+    }
+    const element = tag.substring(4, 8);
+    /** @type {Array<any>} */
+    const att = [attribute.type];
+    if (typeof attribute.condition !== 'undefined') {
+      if (attribute.type.length !== 2) {
+        console.log('Condition for non C', attribute.type, attribute.tag);
+      }
+      att.push(attribute.condition);
+    }
+    if (typeof attribute.items !== 'undefined') {
+      att.push(simplifyAttribute(attribute.items));
+    } else if (typeof attribute.enum !== 'undefined') {
+      att.push(attribute.enum);
+    }
+    res[group][element] = att;
   }
   return res;
 }

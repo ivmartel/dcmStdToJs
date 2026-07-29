@@ -276,9 +276,7 @@ describe('parsePs33Node', () => {
               name: 'Context Group Extension Flag',
               tag: '0008010B',
               type: '1C',
-              condition: ['Context Identifier',
-                '(0008,010F)',
-                'is present'],
+              condition: 'tag(0008,010F) !== undefined',
               desc: ''
             },
             {
@@ -321,9 +319,22 @@ describe('parsePs33Node', () => {
         }
       ];
       expect(ctResult.raw).toEqual(expectedCt);
+      // short tag form: attributes of all modules merged and indexed
+      // by tag group then element, as [type, condition|enum|items]
       expect(JSON.parse(ctResult.data)).toEqual({
-        Patient: expectedCt[0],
-        'Conditional Module': expectedCt[1]
+        '0008': {
+          '0100': ['1'],
+          '010B': ['1C', 'tag(0008,010F) !== undefined'],
+          1110: ['1', {'0008': {1150: ['1']}}]
+        },
+        '0010': {
+          '0040': ['1', ['M', 'F', 'O']],
+          2160: ['2C'],
+          4000: ['2']
+        },
+        '0018': {
+          '0010': ['1']
+        }
       });
     });
 
