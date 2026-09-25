@@ -10,7 +10,7 @@ import {parsePs36UIDNode} from './uidParser.js';
 /**
  * @import {DicomTag} from './tagParser.js';
  * @import {DicomUID} from './uidParser.js';
- * @import {DicomModule, DicomModuleAttributes} from './moduleParser.js';
+ * @import {DicomModule} from './moduleParser.js';
  */
 
 /**
@@ -26,7 +26,7 @@ export class DicomParseResult {
    */
   origin;
   /**
-   * @type {DicomTag[]|DicomUID[]|DicomModule[]}
+   * @type {DicomTag[]|DicomUID[]|DicomModule[]|string[]|Record<string,string>}
    */
   raw;
   /**

@@ -148,12 +148,19 @@ function parseConditionClause(clause) {
 }
 
 /**
+ * Extract condition result.
+ *
+ * @typedef {object} ExtractConditionResult
+ * @property {string} str The input string either in full or
+ *   without the condition if found.
+ * @property {string} [condition] The condition if found.
+ */
+
+/**
  * Extract condition arguments from a string.
  *
  * @param {string} str The string to extract the condition from.
- * @returns {object} An object containing the input string ('str')
- *   either in full or without the condition if found and
- *   the condition ('condition') if found.
+ * @returns {ExtractConditionResult} The extract result.
  */
 export function extractCondition(str) {
   const result = {str: str};

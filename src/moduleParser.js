@@ -41,7 +41,7 @@ export class DicomModuleAttribute {
    */
   tag;
   /**
-   * @type {string}
+   * @type {string[]}
    */
   enum;
   /**
@@ -172,7 +172,8 @@ function parseModuleListNode(node, partNode, expectedCaption, usageRegex) {
  * @param {object} macros Cache of macro tables.
  * @param {object} [fgModulesProperties] Optional functional group
  *   modules properties, undefined to parse a functional group.
- * @returns {object} The map of module name to module attributes.
+ * @returns {Record<string, Array>} The map of module name to
+ *   module attributes.
  */
 function parseModulesFromList(list, partNode, macros, fgModulesProperties) {
   const result = {};
@@ -211,13 +212,20 @@ function parseModulesFromList(list, partNode, macros, fgModulesProperties) {
 }
 
 /**
+ * Extract enum result.
+ *
+ * @typedef {object} ExtractEnumResult
+ * @property {string} str The input string either in full or
+ *   without the enum if found.
+ * @property {string[]} [enum] The enum values if found.
+ */
+
+/**
  * Extract enum values from a string
  *   (created by parseVariableListNode).
  *
  * @param {string} str The string to extract the enum from.
- * @returns {object} An object containing the input string ('str')
- *   either in full or without the enum if found and
- *   the enum ('enum') if found.
+ * @returns {ExtractEnumResult} The extract result.
  */
 function extractEnum(str) {
   const result = {str: str};
@@ -502,7 +510,8 @@ function moduleDefinitionPropertiesToObject(properties, usageRegex) {
 /**
  * Objectify modules properties.
  *
- * @param {string[]} properties The module properties.
+ * @param {Record<string, Array>} properties The map of module name to
+ *   module properties.
  * @param {RegExp} [typeRegex] Optional type selection regex.
  * @returns {DicomModule[]} A module attribute object.
  */

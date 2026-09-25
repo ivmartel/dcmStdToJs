@@ -224,7 +224,7 @@ function floatWordVrTypeExtractor(str) {
  * @param {Element} tableNode The content node.
  * @param {Document} partNode The main DOM node.
  * @param {string} expectedCaption The expected node caption root.
- * @returns {object} The map of VR name to type.
+ * @returns {Record<string, string>} The map of VR name to type.
  */
 function parseVrTableNode(tableNode, partNode, expectedCaption) {
   const values = parseTableNode(tableNode, partNode, expectedCaption);

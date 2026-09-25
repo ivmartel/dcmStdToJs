@@ -156,10 +156,20 @@ function tagPropertiesToObject(properties) {
 }
 
 /**
+ * Compare function.
+ *
+ * @callback CompareFn
+ * @param {object} a The first object.
+ * @param {object} b The second object.
+ * @returns {number} Negative if a is before b, positive if a is after b,
+ *   0 if they are equal.
+ */
+
+/**
  * Get a compare function for a specific string property.
  *
  * @param {string} property The string property to sort by.
- * @returns {Function} A compare function.
+ * @returns {CompareFn} A compare function.
  */
 function getCompare(property) {
   return function (a, b) {
@@ -177,7 +187,7 @@ function getCompare(property) {
  * Get a multi compare function for a list of object properties.
  *
  * @param {string[]} properties The list of string properties to sort by.
- * @returns {function(object, object): number} A compare function.
+ * @returns {CompareFn} A compare function.
  */
 function getMultiCompare(properties) {
   return function (a, b) {
