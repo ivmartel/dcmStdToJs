@@ -14,7 +14,7 @@ export class DicomModule {
 export class DicomModuleAttribute {
     condition: string;
     desc: string;
-    enum: string;
+    enum: string[];
     items: DicomModuleAttribute[];
     name: string;
     tag: string;
@@ -26,7 +26,7 @@ export class DicomParseResult {
     data: string;
     name: string;
     origin: string;
-    raw: DicomTag[] | DicomUID[] | DicomModule[];
+    raw: DicomTag[] | DicomUID[] | DicomModule[] | string[] | Record<string, string>;
 }
 
 // @public

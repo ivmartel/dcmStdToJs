@@ -12,6 +12,7 @@
     "declarationMap": true,
     "strict": false,
     "noImplicitThis": true,
+    "rootDir": "../../src",
     "outDir": "../../build/types"
   },
   "files": ["../../src/index.js"]
