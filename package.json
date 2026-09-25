@@ -13,6 +13,16 @@
     "url": "git://github.com/ivmartel/dcmStdToJs.git"
   },
   "type": "module",
+  "main": "dist/dcmstdtojs.min.js",
+  "types": "dist/dcmstdtojs.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/dcmstdtojs.d.ts",
+      "default": "./dist/dcmstdtojs.min.js"
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
   "browserslist": "> 0.25%, not dead",
   "devDependencies": {
     "@babel/core": "^8.0.1",
@@ -20,21 +30,22 @@
     "@eslint/js": "^10.0.1",
     "@microsoft/api-extractor": "^7.58.7",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.1",
     "babel-loader": "^10.1.1",
     "babel-plugin-istanbul": "^8.0.0",
-    "clean-jsdoc-theme": "5.1.1",
+    "clean-jsdoc-theme": "5.2.0",
     "copy-webpack-plugin": "^14.0.0",
     "css-loader": "^7.1.4",
     "eslint": "^10.6.0",
-    "eslint-plugin-jsdoc": "~64.2.1",
+    "eslint-plugin-jsdoc": "~64.5.2",
     "globals": "^17.7.0",
     "html-webpack-plugin": "^5.6.7",
     "jsdoc": "^4.0.5",
     "jsdom": "^30.0.1",
     "style-loader": "^4.0.0",
     "typescript": "7.0.2",
-    "vitest": "^4.1.10",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.1",
     "webpack": "^5.108.4",
     "webpack-cli": "^7.2.1",
     "webpack-dev-server": "^6.0.0",
