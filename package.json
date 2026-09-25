@@ -23,6 +23,9 @@
     "./dist/*": "./dist/*",
     "./package.json": "./package.json"
   },
+  "engines": {
+    "node": ">=18"
+  },
   "browserslist": "> 0.25%, not dead",
   "devDependencies": {
     "@babel/core": "^8.0.1",
