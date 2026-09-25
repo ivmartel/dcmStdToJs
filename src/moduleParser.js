@@ -1,4 +1,5 @@
 import {
+  asElement,
   cleanString,
   getSelector,
   getLinkend,
@@ -190,7 +191,8 @@ function parseModulesFromList(list, partNode, macros, fgModulesProperties) {
     let foundTable = false;
     for (const node of sectNode.childNodes) {
       // stop at first table
-      if (node instanceof Element && node.nodeName === 'table') {
+      const element = asElement(node);
+      if (element && element.nodeName === 'table') {
         foundTable = true;
         let name = moduleName;
         if (typeof fgModulesProperties === 'undefined') {
@@ -200,7 +202,7 @@ function parseModulesFromList(list, partNode, macros, fgModulesProperties) {
         }
         name += ' Attributes';
         result[moduleName] = parseModuleAttributesNode(
-          node, partNode, macros, name, fgModulesProperties);
+          element, partNode, macros, name, fgModulesProperties);
         break;
       }
     }

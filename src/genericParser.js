@@ -1,4 +1,17 @@
 /**
+ * Get a node as an element.
+ * Checks the node type (1: element) rather than using instanceof,
+ *   to not depend on a global Element (not defined in Node.js).
+ *
+ * @param {Node} node The node to check.
+ * @returns {Element|undefined} The node as an element if it is one,
+ *   undefined otherwise.
+ */
+export function asElement(node) {
+  return node.nodeType === 1 ? /** @type {Element} */ (node) : undefined;
+}
+
+/**
  * Parse a DICOM standard XML table node.
  *
  * @param {Element} tableNode A DOM table node.
@@ -57,12 +70,13 @@ function parseTdNode(tdNode, partNode) {
   const nodes = tdNode.childNodes;
   if (nodes) {
     for (const node of nodes) {
-      // type 1 (elements) to avoid #text between elements
-      if (node instanceof Element) {
-        if (node.nodeName === 'variablelist') {
-          properties.push(parseVariableListNode(node));
+      // only elements to avoid #text between elements
+      const element = asElement(node);
+      if (element) {
+        if (element.nodeName === 'variablelist') {
+          properties.push(parseVariableListNode(element));
         } else {
-          properties.push(parseContentNode(node, partNode));
+          properties.push(parseContentNode(element, partNode));
         }
       }
     }
@@ -84,13 +98,13 @@ function parseContentNode(paraNode, partNode) {
   const nodes = paraNode.childNodes;
   if (nodes) {
     for (const node of nodes) {
-      if (node instanceof Element) {
-        // type 1: element
-        if (node.nodeName === 'xref') {
+      const element = asElement(node);
+      if (element) {
+        if (element.nodeName === 'xref') {
           // just keep linkend for xref
-          content += 'linkend="' + node.getAttribute('linkend') + '"';
+          content += 'linkend="' + element.getAttribute('linkend') + '"';
         } else {
-          content += parseContentNode(node, partNode);
+          content += parseContentNode(element, partNode);
         }
       } else if (node.nodeType === 3) {
         // type 3: text
@@ -115,10 +129,12 @@ function parseContentNode(paraNode, partNode) {
       const nodes = subSection ? subSection.childNodes : undefined;
       if (nodes) {
         for (const node of nodes) {
-          if (node instanceof Element && node.nodeName === 'variablelist') {
+          const element = asElement(node);
+          if (element && element.nodeName === 'variablelist') {
             if (!foundTermsList) {
               foundTermsList = true;
-              content = content.replace(match[0], parseVariableListNode(node));
+              content = content.replace(
+                match[0], parseVariableListNode(element));
             } else {
               console.warn('Multiple variable list for ' + xmlid);
             }
