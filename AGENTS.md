@@ -38,7 +38,7 @@ and tests the DOM comes from jsdom.
 ## Commands
 
 Uses yarn v4 via Corepack (`corepack enable`), Node.js >= 18
-(CI uses Node 24).
+(CI uses Node 26).
 
 - `yarn install --immutable`: install dependencies.
 - `yarn lint`: eslint with JSDoc rules (`config/eslint.config-full.js`).
