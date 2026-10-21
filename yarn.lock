@@ -4942,7 +4942,7 @@ __metadata:
     copy-webpack-plugin: "npm:^14.0.0"
     css-loader: "npm:^7.1.4"
     eslint: "npm:^10.6.0"
-    eslint-plugin-jsdoc: "npm:~65.2.0"
+    eslint-plugin-jsdoc: "npm:~65.3.4"
     globals: "npm:^17.7.0"
     html-webpack-plugin: "npm:^5.6.7"
     jsdoc: "npm:^4.0.5"
@@ -5458,9 +5458,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsdoc@npm:~65.2.0":
-  version: 65.2.0
-  resolution: "eslint-plugin-jsdoc@npm:65.2.0"
+"eslint-plugin-jsdoc@npm:~65.3.4":
+  version: 65.3.4
+  resolution: "eslint-plugin-jsdoc@npm:65.3.4"
   dependencies:
     "@es-joy/jsdoccomment": "npm:~0.98.0"
     "@es-joy/resolve.exports": "npm:1.2.0"
@@ -5483,7 +5483,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/ebcfc15f7df203a011d456c334abf48c0f00a13839b3ca2749363422763732037d8359eb6e8f23656151ef1c4334b8131703b1d29bd53fb478b0355fb5112511
+  checksum: 10c0/5a829d147831cf5a1f6cca6aa09a4aa30f76e954bd434e5427a18712963d1c321d3a859da359169eb3c36e6ae22756f051ee61ef559839c26779ce22e179af87
   languageName: node
   linkType: hard
 
