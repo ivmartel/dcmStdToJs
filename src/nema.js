@@ -1,9 +1,6 @@
 // DICOM versions object
 // (only those published with this repo since NEMA does not do CORS...)
 const dicomVersions = {
-  2016: ['a'],
-  2018: ['a'],
-  2020: ['a'],
   2022: ['a'],
   2024: ['a'],
 };
