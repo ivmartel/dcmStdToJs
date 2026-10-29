@@ -53,14 +53,16 @@ function compare(a, b) {
  * Get a list of DICOM versions associated to their resrouce link.
  *
  * @param {string} partNumber The part number as a string.
+ * @param {string} [basePath] Optional base path of the xml files,
+ *   defaults to the github repository.
  * @returns {Array} An array of {xml, html} objects.
  */
-export function getDicomPartLinks(partNumber) {
+export function getDicomPartLinks(partNumber, basePath) {
   const versions = getDicomVersions();
   const links = {};
   for (const version of versions) {
     links[version] = {
-      xml: getXmlLink(version, partNumber),
+      xml: getXmlLink(version, partNumber, basePath),
       html: getHtmlLink(version, partNumber),
     };
   }
@@ -70,16 +72,21 @@ export function getDicomPartLinks(partNumber) {
 
 /**
  * Get the xml link to the standard.
- * Links go to github since nema does not publish standard with CORS.
+ * Links go to github by default since nema does not publish standard
+ * with CORS.
  *
  * @param {string} version The standard version.
  * @param {string} partNumber The standard part number as a string.
+ * @param {string} [basePath] Optional base path of the xml files,
+ *   defaults to the github repository.
  * @returns {string} The full link to the desired file.
  */
-function getXmlLink(version, partNumber) {
-  const githubRoot = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/main/resources/standard';
+function getXmlLink(version, partNumber, basePath) {
+  if (typeof basePath === 'undefined') {
+    basePath = 'https://raw.githubusercontent.com/ivmartel/dcmStdToJs/main/resources/standard';
+  }
   const partFileName = 'part' + partNumber;
-  return githubRoot + '/' + version + '/' + partFileName + '.xml';
+  return basePath + '/' + version + '/' + partFileName + '.xml';
 }
 
 /**

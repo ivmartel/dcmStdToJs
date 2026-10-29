@@ -1,6 +1,11 @@
 import {DicomXMLParser} from '../src/parser.js';
 import * as nema from '../src/nema.js';
 
+// base path of the standard xml files: local files in development
+// (served by the dev server), default online files otherwise
+const basePath = process.env.NODE_ENV === 'development'
+  ? '/resources/standard' : undefined;
+
 /**
  * GUI classe.
  */
@@ -178,7 +183,7 @@ function onParseUrlsButtonClick(event, parseFunc, partNumbers) {
 
   const urls = [];
   for (const number of partNumbers) {
-    urls.push(nema.getDicomPartLinks(number)[selectedVersion].xml);
+    urls.push(nema.getDicomPartLinks(number, basePath)[selectedVersion].xml);
   }
 
   const onload = function (responses) {
